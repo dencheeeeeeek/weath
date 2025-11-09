@@ -5,8 +5,9 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #7BB2E5;
     --foreground: #ededed;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   }
 }
 
