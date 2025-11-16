@@ -1,16 +1,18 @@
+'use client';
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 
-async function GetWeather(){
-  const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=54.9924&longitude=73.3686&current_weather=true&timezone=auto",
-{
-  cache: 'no-store'
-  }
-);
-const data = await response.json();
-return data
+
+interface WeatherData{
+  current_weather:{
+    temperature:number;
+    weathercode: number;
+    windspeed: number;
+  };
 }
 const weatherCodes: { [key: number]: string } = {
+  
   0: "Ясно",
   1: "Преимущественно ясно", 
   2: "Переменная облачность",
@@ -40,25 +42,39 @@ const weatherCodes: { [key: number]: string } = {
   96: "Гроза с градом",
   99: "Сильная гроза с градом"
 };
-export default async function Home(){
-  const weather = await GetWeather();
-  return(
-<div style={{padding: '20px', fontFamily:'Arial'}}>
-  <div style={{textAlign: "center", fontWeight: "bold"}}>
-    <h1>Омск</h1>
-  </div>
-  <div style={{fontSize: '48px', fontWeight:"bold", textAlign:"center"}}>
-    {weather?.current_weather?.temperature
-    ? Math.round(weather.current_weather.temperature)
-    : "-"
-    }°C
-  </div>
-  <div style={{fontSize: '20px', textAlign: 'center'}}>
-    {weatherCodes[weather?.current_weather?.weathercode] || "Неизвестно"}
-  </div>
-  <div style={{fontSize: '14px', textAlign: "center", color:"gray", marginTop: '10px' }}>
-  Ветер: {weather.current_weather.windspeed} м/c
-  </div>
-</div>
+
+export default function Home() {
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const getWeather = async()=>{
+    try{
+  const response = await fetch(
+    "https://api.open-meteo.com/v1/forecast?latitude=54.9924&longitude=73.3686&current_weather=true&timezone=auto");
+  const data = await response.json();
+  setWeather(data);
+}catch(error){
+  console.log("error")
+}
+  }
+useEffect (()=>{
+  getWeather()
+  const interval=setInterval(getWeather,300000)
+  return() => clearInterval(interval)
+},[]) 
+ if(!weather) return <div>Загрузка</div> 
+  return (
+    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+      <div style={{ textAlign: "center", fontWeight: "bold" }}>
+        <h1>Омск</h1>
+      </div>
+      <div style={{ fontSize: '48px', fontWeight: "bold", textAlign: "center" }}>
+        {Math.round(weather.current_weather.temperature)}°C
+      </div>
+      <div style={{ fontSize: '20px', textAlign: 'center' }}>
+        {weatherCodes[weather.current_weather.weathercode]}
+      </div>
+      <div style={{ fontSize: '14px', textAlign: "center", color: "#DDD", marginTop: '10px' }}>
+        Ветер: {weather.current_weather.windspeed} м/с
+      </div>
+    </div>
   );
 }
