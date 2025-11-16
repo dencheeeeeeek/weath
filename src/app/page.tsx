@@ -57,7 +57,7 @@ export default function Home() {
   }
 useEffect (()=>{
   getWeather()
-  const interval=setInterval(getWeather,300000)
+  const interval=setInterval(getWeather,500000)
   return() => clearInterval(interval)
 },[]) 
  if(!weather) return <div>Загрузка</div> 
