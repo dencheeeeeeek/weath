@@ -11,10 +11,11 @@
   }
 }
 
-html,
-body {
+html, body {
   max-width: 100vw;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -23,21 +24,266 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
+}
+
+.container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: clamp(24px, 5vw, 32px);
   margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.temperature {
+  font-size: clamp(36px, 10vw, 64px);
+  font-weight: bold;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.weather-description {
+  font-size: clamp(16px, 4vw, 24px);
+  text-align: center;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.weather-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 20px 0;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: clamp(14px, 3vw, 18px);
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.time {
+  font-size: clamp(20px, 6vw, 32px);
+  font-weight: bold;
+  text-align: center;
+  margin: 25px 0;
+}
+
+.warnings-widget,
+.fishing-widget,
+.clothing-widget {
+  background: rgba(255,255,255,0.1);
+  padding: clamp(15px, 4vw, 20px);
+  border-radius: 15px;
+  margin-top: 15px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.widget-title {
+  font-size: clamp(16px, 4vw, 20px);
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.warning-item {
+  font-size: clamp(12px, 2.5vw, 14px);
+  padding: 5px 0;
+  color: #ff6b6b;
+}
+
+.fishing-status {
+  font-size: clamp(14px, 3vw, 18px);
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.fishing-description,
+.clothing-advice {
+  font-size: clamp(12px, 2.5vw, 14px);
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+  
+  .weather-details {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .warnings-widget,
+  .fishing-widget,
+  .clothing-widget {
+    padding: 12px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
+}
+.date-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.moon-phase, .seasonal-work {
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+.bus-schedule {
+  margin-top: 10px;
+}
+
+.bus-route {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.route-name {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.route-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.time-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.tips div {
+  margin: 8px 0;
+  padding-left: 10px;
+  border-left: 3px solid #4CAF50;
+}
+.nav-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  margin: 20px 10px;
+  transition: background 0.3s;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.3);
+}
+.button-container {
+  text-align: center;
+  margin-top: 30px;
+  width: 100%;
+}
+.current-date {
+    font-size: clamp(20px, 6vw, 32px);
+    font-weight: bold;
+    text-align: center;
+    margin: 25px 0;
+    color: white;
+}
+.forecast-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.forecast-buttons button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.forecast-buttons button.active {
+    background: rgba(255,255,255,0.3);
+    font-weight: bold;
+}
+
+.forecast-buttons button:hover {
+    background: rgba(255,255,255,0.2);
+}
+.multi-day-forecast {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.forecast-day {
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.day-name {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.day-temp {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.day-desc {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.forecast-details {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+  font-size: 14px;
 }
