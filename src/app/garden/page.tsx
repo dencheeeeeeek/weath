@@ -29,30 +29,64 @@ export default function GardenPage(){
     
     return(
         <div className="container">
-            <div className="header">
-                <h1>🌱 Календарь дачника</h1>
-                <p>Омск и Омская область</p>
+            {/* Верхняя часть с лого и временем */}
+            <div className="top-section">
+                <div className="logo-section">
+                    <div className="logo-main">WINTER</div>
+                    <div className="logo-sub">SALE</div>
+                </div>
             </div>
 
-            <div className="widget">
-                <div className="widget-title">🌙 Фаза луны</div>
-                <div className="moon-phase">{moonPhase.phase}</div>
-                <div className="moon-advice">{moonPhase.advice}</div>
-                <div className="current-date">
-                {selectedDate.toLocaleDateString('ru-RU', { 
-                    day: 'numeric', 
-                    month: 'long', 
-                    year: 'numeric',
-                    weekday: 'long'
-                })}
-            </div>
-            </div>
+            {/* Основной контент */}
+            <div className="main-content">
+                {/* Левая колонка */}
+                <div className="left-column">
+                    <div className="weather-header">
+                        <div className="weather-title">🌱 Календарь дачника</div>
+                        <div className="location">Омск и Омская область</div>
+                    </div>
 
-            
-            <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                <a href="/" className="nav-button">
-                    ← Назад к погоде
-                </a>
+                    <div className="date-section">
+                        <div className="day">
+                            {selectedDate.toLocaleDateString('ru-RU', { weekday: 'long' }).toUpperCase()}
+                        </div>
+                        <div className="date">
+                            {selectedDate.toLocaleDateString('ru-RU', { 
+                                day: 'numeric', 
+                                month: 'numeric', 
+                                year: 'numeric'
+                            }).replace(/\./g, '.')}
+                        </div>
+                    </div>
+
+                    <div className="weather-details">
+                        <div className="detail-item">
+                            <span>Фаза луны:</span>
+                            <span>{moonPhase.phase}</span>
+                        </div>
+                        <div className="detail-item">
+                            <span>Рекомендации:</span>
+                            <span>{moonPhase.advice}</span>
+                        </div>
+                    </div>
+
+                    <div className="navigation-section">
+                        <a href="/" className="nav-button">
+                            ← Назад к погоде
+                        </a>
+                    </div>
+                </div>
+
+                {/* Правая колонка с виджетами */}
+                <div className="right-column">
+                    <div className="weather-widget temperature-widget">
+                        <div className="widget-content">
+                            <div className="weather-condition">
+                                Лунный календарь
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
