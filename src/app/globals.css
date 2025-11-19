@@ -117,6 +117,41 @@ body {
 .forecast-buttons button:hover {
   background: rgba(255,255,255,0.2);
 }
+/* Стили для увеличенного текста в дачном календаре */
+.detail-label-large {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.detail-value-large {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.advice-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid rgba(255,255,255,0.3);
+}
+
+.advice-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.advice-text-large {
+    font-size: 18px;
+    line-height: 1.6;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 4px solid #4CAF50;
+}
 
 /* Основной контент */
 .main-content {
@@ -243,10 +278,12 @@ body {
 
 .temperature-widget {
   background: var(--widget-gradient-1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .condition-widget {
   background: var(--widget-gradient-2);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .widget-content {
@@ -349,5 +386,118 @@ body {
   
   .logo-sub {
     font-size: 20px;
+  }
+}
+/* Стили для многодневного прогноза */
+.multi-day-forecast {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+}
+
+.forecast-day {
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+  border-radius: 20px;
+  padding: 25px;
+  text-align: center;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.forecast-day::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.forecast-day:hover::before {
+  left: 100%;
+}
+
+.forecast-day:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.day-name {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #fff;
+  text-transform: capitalize;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.day-date {
+  font-size: 16px;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.day-temp {
+  font-size: 28px;
+  font-weight: bold;
+  margin: 20px 0;
+  color: #fff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.day-desc {
+  font-size: 16px;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 15px;
+  font-weight: 500;
+  background: rgba(255,255,255,0.1);
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+/* Разные цвета для разных дней */
+.forecast-day:nth-child(1) {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+}
+
+.forecast-day:nth-child(2) {
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.3) 0%, rgba(245, 87, 108, 0.3) 100%);
+}
+
+.forecast-day:nth-child(3) {
+  background: linear-gradient(135deg, rgba(77, 160, 176, 0.3) 0%, rgba(72, 219, 251, 0.3) 100%);
+}
+
+.forecast-day:nth-child(4) {
+  background: linear-gradient(135deg, rgba(246, 211, 101, 0.3) 0%, rgba(253, 160, 133, 0.3) 100%);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .multi-day-forecast {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .forecast-day {
+    padding: 20px;
+  }
+  
+  .day-temp {
+    font-size: 24px;
   }
 }

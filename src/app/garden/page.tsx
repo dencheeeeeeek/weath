@@ -61,12 +61,12 @@ export default function GardenPage(){
 
                     <div className="weather-details">
                         <div className="detail-item">
-                            <span>Фаза луны:</span>
-                            <span>{moonPhase.phase}</span>
+                            <span className="detail-label-large">Фаза луны:</span>
+                            <span className="detail-value-large">{moonPhase.phase}</span>
                         </div>
-                        <div className="detail-item">
-                            <span>Рекомендации:</span>
-                            <span>{moonPhase.advice}</span>
+                        <div className="advice-section">
+                            <div className="advice-title">Рекомендации:</div>
+                            <div className="advice-text-large">{moonPhase.advice}</div>
                         </div>
                     </div>
 
