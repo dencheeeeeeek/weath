@@ -485,6 +485,13 @@ body {
 .forecast-day:nth-child(4) {
   background: linear-gradient(135deg, rgba(246, 211, 101, 0.3) 0%, rgba(253, 160, 133, 0.3) 100%);
 }
+.forecast-day:nth-child(5) {
+  background: linear-gradient(135deg, rgba(77, 160, 176, 0.4) 0%, rgba(72, 219, 251, 0.4) 100%);
+}
+
+.forecast-day:nth-child(6) {
+  background: linear-gradient(135deg, rgba(246, 211, 101, 0.4) 0%, rgba(253, 160, 133, 0.4) 100%);
+}
 
 /* Адаптивность */
 @media (max-width: 768px) {
@@ -500,4 +507,33 @@ body {
   .day-temp {
     font-size: 24px;
   }
+}
+.day-name, .day-temp, .day-desc {
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+}
+/* Улучшаем читаемость текста */
+.weather-condition, .temperature-value, .detail-item span {
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+  font-weight: 600;
+}
+
+.weather-description {
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+  font-weight: 500;
+}
+/* Или если хочешь сделать еще контрастнее */
+.detail-item span {
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+  font-weight: 600; /* Полужирный как у "СРЕДА" */
+  font-size: 16px; /* Примерный размер */
+  font-family: inherit; 
+  text-transform: uppercase; /* Все буквы заглавные */
+  letter-spacing: 0.5px; /* Немного разрядить буквы */
+}
+.weather-details {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    rgba(0, 0, 0, 0.25);
 }
