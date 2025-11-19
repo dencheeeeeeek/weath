@@ -33,7 +33,7 @@ const weatherCodes: { [key: number]: string } = {
   86: "Снегопад", 95: "Гроза", 96: "Гроза с градом", 99: "Сильная гроза с градом"
 };
 
-const MiltiDayForecast = ({days, weather, period} : {days:number, weather:WeatherData, period: string}) => {
+const MiltiDayForecast = ({days, weather} : {days:number, weather:WeatherData}) => {
   const getDayName = (dateString:string) => {
     const date = new Date(dateString + "T00:00:00")
     return date.toLocaleDateString('ru-RU', {weekday: "long"});
@@ -43,25 +43,161 @@ const MiltiDayForecast = ({days, weather, period} : {days:number, weather:Weathe
     const date = new Date(dateString + "T00:00:00")
     return `${date.getDate()}.${date.getMonth() + 1}`
   }
-  const startIndex = period === 'today' ? 0 : 1;
-  const endIndex = period === 'today' ? days : days + 1;
+  
   return (
     <div className="multi-day-forecast">
-      {weather.daily.time.slice(startIndex,endIndex).map((date, mapIndex) => {
-        const dataIndex = startIndex + mapIndex;
-        return(
-        <div key={date} className="forecast-day">
-          <div className="day-name">{getDayName(date)}</div>
-          <div className="day-date">{formatDate(date)}</div>
-          <div className="day-temp">
-            {Math.round(weather.daily.temperature_2m_max[dataIndex])}° / {Math.round(weather.daily.temperature_2m_min[dataIndex])}°
+      {weather.daily.time.slice(1, days + 1).map((date, index) => {
+        const dataIndex = index + 1;
+        return (
+          <div key={date} className="forecast-day">
+            <div className="day-name">{getDayName(date)}</div>
+            <div className="day-date">{formatDate(date)}</div>
+            <div className="day-temp">
+              {Math.round(weather.daily.temperature_2m_max[dataIndex])}° / {Math.round(weather.daily.temperature_2m_min[dataIndex])}°
+            </div>
+            <div className="day-desc">
+              {weatherCodes[weather.daily.weathercode[dataIndex]]}
+            </div>
           </div>
-          <div className="day-desc">
-            {weatherCodes[weather.daily.weathercode[dataIndex]]}
+        );
+      })}
+    </div>
+  );
+};
+
+const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
+  const tomorrowIndex = 1;
+
+  const getTomorrowDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return {
+      weekday: tomorrow.toLocaleDateString('ru-RU', { weekday: 'long' }).toUpperCase(),
+      date: tomorrow.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    };
+  };
+
+  const tomorrowDate = getTomorrowDate();
+
+  return (
+    <div className="main-content">
+      <div className="left-column">
+        <div className="weather-header">
+          <div className="weather-title">ПОГОДА</div>
+          <div className="location">О М С К</div>
+        </div>
+
+        <div className="date-section">
+          <div className="day">{tomorrowDate.weekday}</div>
+          <div className="date">{tomorrowDate.date}</div>
+        </div>
+
+        <div className="weather-details">
+          <div className="detail-item">
+            <span>Осадки за день:</span>
+            <span>{weather.daily.precipitation_sum[tomorrowIndex].toFixed(1)} мм</span>
+          </div>
+          <div className="detail-item">
+            <span>Давление:</span>
+            <span>{Math.round(weather.hourly.pressure_msl[24])} гПа</span>
+          </div>
+          <div className="detail-item">
+            <span>Ветер:</span>
+            <span>{weather.current_weather.windspeed.toFixed(1)} м/с</span>
+          </div>
+          <div className="detail-item">
+            <span>Макс. температура:</span>
+            <span>{Math.round(weather.daily.temperature_2m_max[tomorrowIndex])}°C</span>
+          </div>
+          <div className="detail-item">
+            <span>Мин. температура:</span>
+            <span>{Math.round(weather.daily.temperature_2m_min[tomorrowIndex])}°C</span>
           </div>
         </div>
-        );
-})}
+
+        <div className="navigation-section">
+          <Link href="/garden" className="nav-button">
+            🌱 Календарь дачника
+          </Link>
+        </div>
+      </div>
+
+      <div className="right-column">
+        <div className="weather-widget temperature-widget">
+          <div className="widget-content">
+            <div className="temperature-value">
+              {Math.round(weather.daily.temperature_2m_max[tomorrowIndex])}°C
+            </div>
+          </div>
+        </div>
+        <div className="weather-widget temperature-widget">
+          <div className="widget-content">
+            <div className="weather-condition">
+              {weatherCodes[weather.daily.weathercode[tomorrowIndex]]}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, currentDate: any }) => {
+  return (
+    <div className="main-content">
+      <div className="left-column">
+        <div className="weather-header">
+          <div className="weather-title">ПОГОДА</div>
+          <div className="location">О М С К</div>
+        </div>
+
+        <div className="date-section">
+          <div className="day">{currentDate.weekday}</div>
+          <div className="date">{currentDate.date}</div>
+        </div>
+
+        <div className="weather-details">
+          <div className="detail-item">
+            <span>Осадки сейчас:</span>
+            <span>{weather.hourly.precipitation[0].toFixed(1)} мм</span>
+          </div>
+          <div className="detail-item">
+            <span>Осадки за день:</span>
+            <span>{weather.daily.precipitation_sum[0].toFixed(1)} мм</span>
+          </div>
+          <div className="detail-item">
+            <span>Давление:</span>
+            <span>{Math.round(weather.hourly.pressure_msl[0])} гПа</span>
+          </div>
+          <div className="detail-item">
+            <span>Ветер:</span>
+            <span>{weather.current_weather.windspeed.toFixed(1)} м/с</span>
+          </div>
+        </div>
+
+        <div className="navigation-section">
+          <Link href="/garden" className="nav-button">
+            🌱 Календарь дачника
+          </Link>
+        </div>
+      </div>
+
+      <div className="right-column">
+        <div className="weather-widget temperature-widget">
+          <div className="widget-content">
+            <div className="temperature-value">
+              {Math.round(weather.current_weather.temperature)}°C
+            </div>
+          </div>
+        </div>
+        <div className="weather-widget temperature-widget">
+          <div className="widget-content">
+            <div className="weather-condition">
+              {weatherCodes[weather.current_weather.weathercode]}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -116,7 +252,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      {/* Верхняя часть с лого и временем */}
       <div className="top-section">
         <div className="logo-section">
           <div className="logo-main">WINTER</div>
@@ -127,7 +262,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Кнопки прогноза */}
       <div className="forecast-buttons">
         <button 
           className={forecastPeriod === 'today' ? 'active' : ''}
@@ -148,80 +282,17 @@ export default function Home() {
           НА 3 ДНЯ
         </button>
         <button 
-          className={forecastPeriod === '7days' ? 'active' : ''}
-          onClick={() => setForecastPeriod('7days')}
+          className={forecastPeriod === '6days' ? 'active' : ''}
+          onClick={() => setForecastPeriod('6days')}
         >
           НА 6 ДНЕЙ
         </button>
       </div>
-      {forecastPeriod === 'today' ? (
-        // Показываем основной интерфейс
-        <div className="main-content">
-          <div className="left-column">
-            <div className="weather-header">
-              <div className="weather-title">ПОГОДА</div>
-              <div className="location">О М С К</div>
-            </div>
 
-            <div className="date-section">
-              <div className="day">{currentDate.weekday}</div>
-              <div className="date">{currentDate.date}</div>
-            </div>
-
-            <div className="weather-details">
-              <div className="detail-item">
-                <span>Осадки сейчас:</span>
-                <span>{weather.hourly.precipitation[0].toFixed(1)}</span>
-              </div>
-              <div className="detail-item">
-                <span>Осадки за день:</span>
-                <span>{weather.daily.precipitation_sum[0].toFixed(1)}</span>
-              </div>
-              <div className="detail-item">
-                <span>Давление:</span>
-                <span>{Math.round(weather.hourly.pressure_msl[0])} гПа</span>
-              </div>
-              <div className="detail-item">
-                <span>Ветер:</span>
-                <span>{weather.current_weather.windspeed.toFixed(1)} м/с</span>
-              </div>
-            </div>
-
-            <div className="navigation-section">
-              <Link href="/garden" className="nav-button">
-                🌱 Календарь дачника
-              </Link>
-            </div>
-          </div>
-
-          <div className="right-column">
-            <div className="weather-widget temperature-widget">
-              <div className="widget-content">
-                <div className="temperature-value">
-                  {Math.round(weather.current_weather.temperature)}°C
-                </div>
-              </div>
-            </div>
-            <div className="weather-widget temperature-widget">
-              <div className="widget-content">
-                <div className="weather-condition">
-                  {weatherCodes[weather.current_weather.weathercode]}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        // Показываем прогноз на несколько дней
-        <MiltiDayForecast 
-          days={
-            forecastPeriod === 'tomorrow' ? 1 :
-            forecastPeriod === '3days' ? 3 : 7
-          }
-          weather={weather}
-          period={forecastPeriod}
-        />
-      )}
+      {forecastPeriod === 'today' && <CurrentWeather weather={weather} currentDate={currentDate} />}
+      {forecastPeriod === 'tomorrow' && <TomorrowWeather weather={weather} />}
+      {forecastPeriod === '3days' && <MiltiDayForecast days={3} weather={weather} />}
+      {forecastPeriod === '6days' && <MiltiDayForecast days={6} weather={weather} />}
     </div>
   );
 }
