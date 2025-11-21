@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import Link from 'next/link';
+import { createBrowserClient } from '@supabase/ssr'
 
 interface WeatherData{
   current_weather:{
@@ -32,6 +33,82 @@ const weatherCodes: { [key: number]: string } = {
   80: "Небольшой ливень", 81: "Ливень", 82: "Сильный ливень", 85: "Небольшой снегопад",
   86: "Снегопад", 95: "Гроза", 96: "Гроза с градом", 99: "Сильная гроза с градом"
 };
+const getClothingAdvice=(weather: WeatherData, isTomorrow: boolean=false)=>{
+  const temp=isTomorrow? weather.daily.temperature_2m_max[1]:weather.current_weather.temperature;
+  const weatherCode=isTomorrow? weather.daily.weathercode[1]:weather.current_weather.weathercode;
+  const precipitation = isTomorrow ? weather.daily.precipitation_sum[1] : weather.daily.precipitation_sum[0];
+  const advice=[]
+  if (temp < -20) advice.push("❄️ Тёплая зимняя одежда, термобельё, шапка, перчатки");
+  else if (temp < -10) advice.push("🧥 Зимняя куртка, тёплая обувь, шапка, шарф");
+  else if (temp < 0) advice.push("🧥 Тёплая куртка, головной убор, перчатки");
+  else if (temp < 10) advice.push("👔 Куртка, демисезонная обувь");
+  else if (temp > 25) advice.push("👕 Лёгкая одежда, головной убор от солнца");
+  if(precipitation>5) advice.push("🌧️ Непромокаемая обувь, зонт");
+  if(precipitation>10) advice.push("🥾 Высокая непромокаемая обувь")
+  if([71, 73, 75, 77, 85, 86].includes(weatherCode)){
+    advice.push("⛄ Тёплая непромокаемая одежда, зимняя обувь")
+  }
+  if([61, 63, 65, 80, 81, 82].includes(weatherCode)){
+    advice.push("🌂 Дождевик или зонт, непромокаемая обувь")
+  }
+  if(weatherCode===3) advice.push("☁️ Лёгкая куртка - может быть прохладно")
+  if([0,1].includes(weatherCode)) advice.push("😎 Солнцезащитные очки в солнечный день")
+  return advice.length>0? advice:["👔 Стандартная одежда по сезону"]
+}
+const getFishingAdvice=(weather:WeatherData, isTomorrow:boolean=false)=>{
+  const currentPressure=weather.hourly.pressure_msl[0]
+  const tomorrowPressure=weather.hourly.pressure_msl[24]
+  const pressureChange=tomorrowPressure-currentPressure
+
+  const temp= isTomorrow ? weather.daily.temperature_2m_max[1] : weather.current_weather.temperature
+  const weatherCode= isTomorrow ? weather.daily.weathercode[1]: weather.current_weather.weathercode
+  const wind=weather.current_weather.windspeed
+
+  let mood = "";
+  let advice = "";
+  let bait = "";
+    if (pressureChange > 3) {
+    mood = "🐟 Рыба в приподнятом настроении! Активно ищет еду";
+    advice = "Идеальное время для экспериментов с приманками";
+    bait = "Попробуй яркие блёсны и воблеры";
+  } else if (pressureChange < -3) {
+    mood = "😴 Рыба вялая, как студент на паре в понедельник утром";
+    advice = "Лучше остаться дома с чаем";
+    bait = "Разве что дошик попробовать...";
+  } else if (Math.abs(pressureChange) < 1) {
+    mood = "😐 Рыба в стабильном настроении - как омич в пробке на Ленина";
+    advice = "Стабильный клёв, но без сюрпризов";
+    bait = "Классические черви и опарыши";
+  } else {
+    mood = "🤔 Рыба задумалась о смысле жизни";
+    advice = "Нужно проявить терпение и хитрость";
+    bait = "Медленная проводка, натуральные приманки";
+  }
+  if (temp < -15) {
+    mood = "❄️ Рыба в анабиозе, как медведь в берлоге";
+    advice = "Нужна сверхтерпеливая зимняя рыбалка";
+    bait = "Мормышка с мотылём, много горячего чая";
+  }
+
+  if (wind > 10) {
+    mood = "🌪️ Рыбу качает как на аттракционе";
+    advice = "Ищи затишки за камышом или сиди дома";
+    bait = "Тяжёлые грузила, чтобы не сдувало";
+  }
+
+  if ([71, 73, 75, 85, 86].includes(weatherCode)) {
+    mood = "🌨️ Рыба под снежным покровом - как в сказке";
+    advice = "Отличное время для зимней сказки с удочкой";
+    bait = "Красная мормышка - как ягодка под снегом";
+  }
+   return {
+    mood,
+    advice, 
+    bait,
+    pressureChange: pressureChange.toFixed(1),
+    isGood: pressureChange > 2 && temp > -10 && wind < 8
+  };
+}
 
 const MiltiDayForecast = ({days, weather} : {days:number, weather:WeatherData}) => {
   const getDayName = (dateString:string) => {
@@ -67,7 +144,7 @@ const MiltiDayForecast = ({days, weather} : {days:number, weather:WeatherData}) 
 
 const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
   const tomorrowIndex = 1;
-
+  
   const getTomorrowDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -143,6 +220,7 @@ const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
 };
 
 const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, currentDate: any }) => {
+  const fishingAdvice = getFishingAdvice(weather, true);
   return (
     <div className="main-content">
       <div className="left-column">
@@ -173,7 +251,14 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
             <span>Ветер:</span>
             <span>{weather.current_weather.windspeed.toFixed(1)} м/с</span>
           </div>
+                                  <div className="clothing-advice-section">
+  <div className="section-title">👕 Рекомендации по одежде</div>
+  {getClothingAdvice(weather, false).map((item, index) => (
+    <div key={index} className="advice-item">{item}</div>
+  ))}
+</div>
         </div>
+
 
         <div className="navigation-section">
           <Link href="/garden" className="nav-button">
@@ -197,6 +282,20 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
             </div>
           </div>
         </div>
+        <div className="fishing-advice-section">
+  <div className="section-title">🎣 Шепот рыбака</div>
+  <div className={`fishing-mood ${fishingAdvice.isGood ? 'good' : 'normal'}`}>
+    {fishingAdvice.mood}
+  </div>
+  <div className="fishing-tips">
+    <div className="fishing-tip">💡 {fishingAdvice.advice}</div>
+    <div className="fishing-tip">🪝 {fishingAdvice.bait}</div>
+  </div>
+  <div className="fishing-pressure">
+    📊 Давление меняется на {fishingAdvice.pressureChange} гПа
+    {Math.abs(parseFloat(fishingAdvice.pressureChange)) > 3 && " ⚠️"}
+  </div>
+</div>
       </div>
     </div>
   );

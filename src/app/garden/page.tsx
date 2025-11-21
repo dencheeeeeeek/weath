@@ -29,17 +29,13 @@ export default function GardenPage(){
     
     return(
         <div className="container">
-            {/* Верхняя часть с лого и временем */}
             <div className="top-section">
                 <div className="logo-section">
                     <div className="logo-main">WINTER</div>
                     <div className="logo-sub">SALE</div>
                 </div>
             </div>
-
-            {/* Основной контент */}
             <div className="main-content">
-                {/* Левая колонка */}
                 <div className="left-column">
                     <div className="weather-header">
                         <div className="weather-title">🌱 Календарь дачника</div>
@@ -77,7 +73,6 @@ export default function GardenPage(){
                     </div>
                 </div>
 
-                {/* Правая колонка с виджетами */}
                 <div className="right-column">
                     <div className="weather-widget temperature-widget">
                         <div className="widget-content">

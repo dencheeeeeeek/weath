@@ -142,6 +142,7 @@ body {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
+
 .advice-text-large {
     font-size: 18px;
     line-height: 1.6;
@@ -536,4 +537,138 @@ body {
     radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
     rgba(0, 0, 0, 0.25);
+}
+.clothing-advice-section {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+    rgba(0, 0, 0, 0.25);
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.clothing-advice-section .section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.advice-item {
+  padding: 10px 0;
+  font-size: 14px;
+  color: white;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+}
+
+.advice-item:last-child {
+  border-bottom: none;
+}
+
+/* Чтобы совпадало с основным виджетом */
+.weather-details, .clothing-advice-section {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+/* Улучшаем контрастность всех виджетов */
+.weather-details,
+.clothing-advice-section,
+.fishing-advice-section {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 50%),
+    rgba(0, 0, 0, 0.4); /* Увеличиваем прозрачность фона */
+  border-radius: 15px;
+  padding: 20px;
+  margin-top: 20px;
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(255,255,255,0.3); /* Более яркая граница */
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* Улучшаем читаемость текста */
+.detail-item span,
+.advice-item,
+.fishing-tip {
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* Заголовки делаем более выделенными */
+.section-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 2px solid rgba(255,255,255,0.3);
+  padding-bottom: 10px;
+}
+
+/* Разделители между пунктами */
+.detail-item,
+.advice-item,
+.fishing-tip {
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+  padding: 12px 0;
+}
+
+.detail-item:last-child,
+.advice-item:last-child,
+.fishing-tip:last-child {
+  border-bottom: none;
+}
+
+/* Особо выделяем важную информацию */
+.fishing-mood {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+}
+
+.fishing-mood.good {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.fishing-mood.normal {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+}
+
+/* Улучшаем видимость давления */
+.fishing-pressure {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Делаем разделители более заметными */
+.weather-details::before,
+.clothing-advice-section::before,
+.fishing-advice-section::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+  margin: -20px -20px 20px -20px;
+  border-radius: 15px 15px 0 0;
 }
