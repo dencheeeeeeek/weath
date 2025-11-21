@@ -23,6 +23,29 @@ interface WeatherData{
     precipitation_sum:number[];
   }
 }
+const createClient = () =>
+  createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+const omskRegionDistricts = {
+  'Омск': { lat: 54.9924, lon: 73.3686 },
+  'Тара': { lat: 56.7306, lon: 74.3641 },
+  'Муромцево': { lat: 56.3744, lon: 75.2417 },
+  'Называевск': { lat: 55.5686, lon: 71.3500 },
+  'Москаленки': { lat: 54.9333, lon: 71.9333 },
+  'Калачинск': { lat: 55.0500, lon: 74.5833 },
+  'Исилькуль': { lat: 54.9167, lon: 71.2667 },
+  'Тевриз': { lat: 57.5167, lon: 72.4000 },
+  'Большие Уки': { lat: 56.9333, lon: 72.7667 },
+  'Таврическое': { lat: 54.5833, lon: 73.6333 },
+  'Черлак': { lat: 54.1500, lon: 74.8000 },
+  'Полтавка': { lat: 54.3667, lon: 71.7667 },
+  'Одесское': { lat: 54.2167, lon: 72.9667 },
+  'Седельниково': { lat: 56.9500, lon: 75.3333 },
+  'Колосовка': { lat: 56.4667, lon: 73.6167 }
+}
 
 const weatherCodes: { [key: number]: string } = {
   0: "Ясно", 1: "Преимущественно ясно", 2: "Переменная облачность", 3: "Пасмурно",
@@ -33,41 +56,49 @@ const weatherCodes: { [key: number]: string } = {
   80: "Небольшой ливень", 81: "Ливень", 82: "Сильный ливень", 85: "Небольшой снегопад",
   86: "Снегопад", 95: "Гроза", 96: "Гроза с градом", 99: "Сильная гроза с градом"
 };
-const getClothingAdvice=(weather: WeatherData, isTomorrow: boolean=false)=>{
-  const temp=isTomorrow? weather.daily.temperature_2m_max[1]:weather.current_weather.temperature;
-  const weatherCode=isTomorrow? weather.daily.weathercode[1]:weather.current_weather.weathercode;
+
+const getClothingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => {
+  const temp = isTomorrow ? weather.daily.temperature_2m_max[1] : weather.current_weather.temperature;
+  const weatherCode = isTomorrow ? weather.daily.weathercode[1] : weather.current_weather.weathercode;
   const precipitation = isTomorrow ? weather.daily.precipitation_sum[1] : weather.daily.precipitation_sum[0];
-  const advice=[]
+  
+  const advice = [];
+
   if (temp < -20) advice.push("❄️ Тёплая зимняя одежда, термобельё, шапка, перчатки");
   else if (temp < -10) advice.push("🧥 Зимняя куртка, тёплая обувь, шапка, шарф");
   else if (temp < 0) advice.push("🧥 Тёплая куртка, головной убор, перчатки");
   else if (temp < 10) advice.push("👔 Куртка, демисезонная обувь");
   else if (temp > 25) advice.push("👕 Лёгкая одежда, головной убор от солнца");
-  if(precipitation>5) advice.push("🌧️ Непромокаемая обувь, зонт");
-  if(precipitation>10) advice.push("🥾 Высокая непромокаемая обувь")
-  if([71, 73, 75, 77, 85, 86].includes(weatherCode)){
-    advice.push("⛄ Тёплая непромокаемая одежда, зимняя обувь")
-  }
-  if([61, 63, 65, 80, 81, 82].includes(weatherCode)){
-    advice.push("🌂 Дождевик или зонт, непромокаемая обувь")
-  }
-  if(weatherCode===3) advice.push("☁️ Лёгкая куртка - может быть прохладно")
-  if([0,1].includes(weatherCode)) advice.push("😎 Солнцезащитные очки в солнечный день")
-  return advice.length>0? advice:["👔 Стандартная одежда по сезону"]
-}
-const getFishingAdvice=(weather:WeatherData, isTomorrow:boolean=false)=>{
-  const currentPressure=weather.hourly.pressure_msl[0]
-  const tomorrowPressure=weather.hourly.pressure_msl[24]
-  const pressureChange=tomorrowPressure-currentPressure
 
-  const temp= isTomorrow ? weather.daily.temperature_2m_max[1] : weather.current_weather.temperature
-  const weatherCode= isTomorrow ? weather.daily.weathercode[1]: weather.current_weather.weathercode
-  const wind=weather.current_weather.windspeed
+  if (precipitation > 5) advice.push("🌧️ Непромокаемая обувь, зонт");
+  if (precipitation > 10) advice.push("🥾 Высокая непромокаемая обувь");
+  
+  if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) {
+    advice.push("⛄ Тёплая непромокаемая одежда, зимняя обувь");
+  }
+  if ([61, 63, 65, 80, 81, 82].includes(weatherCode)) {
+    advice.push("🌂 Дождевик или зонт, непромокаемая обувь");
+  }
+  if (weatherCode === 3) advice.push("☁️ Лёгкая куртка - может быть прохладно");
+  if ([0, 1].includes(weatherCode)) advice.push("😎 Солнцезащитные очки в солнечный день");
+
+  return advice.length > 0 ? advice : ["👔 Стандартная одежда по сезону"];
+};
+
+const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => {
+  const currentPressure = weather.hourly.pressure_msl[0];
+  const tomorrowPressure = weather.hourly.pressure_msl[24];
+  const pressureChange = tomorrowPressure - currentPressure;
+  
+  const temp = isTomorrow ? weather.daily.temperature_2m_max[1] : weather.current_weather.temperature;
+  const weatherCode = isTomorrow ? weather.daily.weathercode[1] : weather.current_weather.weathercode;
+  const wind = weather.current_weather.windspeed;
 
   let mood = "";
   let advice = "";
   let bait = "";
-    if (pressureChange > 3) {
+
+  if (pressureChange > 3) {
     mood = "🐟 Рыба в приподнятом настроении! Активно ищет еду";
     advice = "Идеальное время для экспериментов с приманками";
     bait = "Попробуй яркие блёсны и воблеры";
@@ -84,6 +115,7 @@ const getFishingAdvice=(weather:WeatherData, isTomorrow:boolean=false)=>{
     advice = "Нужно проявить терпение и хитрость";
     bait = "Медленная проводка, натуральные приманки";
   }
+
   if (temp < -15) {
     mood = "❄️ Рыба в анабиозе, как медведь в берлоге";
     advice = "Нужна сверхтерпеливая зимняя рыбалка";
@@ -101,14 +133,15 @@ const getFishingAdvice=(weather:WeatherData, isTomorrow:boolean=false)=>{
     advice = "Отличное время для зимней сказки с удочкой";
     bait = "Красная мормышка - как ягодка под снегом";
   }
-   return {
+
+  return {
     mood,
     advice, 
     bait,
     pressureChange: pressureChange.toFixed(1),
     isGood: pressureChange > 2 && temp > -10 && wind < 8
   };
-}
+};
 
 const MiltiDayForecast = ({days, weather} : {days:number, weather:WeatherData}) => {
   const getDayName = (dateString:string) => {
@@ -144,7 +177,8 @@ const MiltiDayForecast = ({days, weather} : {days:number, weather:WeatherData}) 
 
 const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
   const tomorrowIndex = 1;
-  
+  const fishingAdvice = getFishingAdvice(weather, true);
+
   const getTomorrowDate = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -190,6 +224,13 @@ const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
             <span>Мин. температура:</span>
             <span>{Math.round(weather.daily.temperature_2m_min[tomorrowIndex])}°C</span>
           </div>
+
+          <div className="clothing-advice-section">
+            <div className="section-title">👕 Рекомендации по одежде</div>
+            {getClothingAdvice(weather, true).map((item, index) => (
+              <div key={index} className="advice-item">{item}</div>
+            ))}
+          </div>
         </div>
 
         <div className="navigation-section">
@@ -214,13 +255,27 @@ const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
             </div>
           </div>
         </div>
+        <div className="fishing-advice-section">
+          <div className="section-title">🎣 Шепот рыбака</div>
+          <div className={`fishing-mood ${fishingAdvice.isGood ? 'good' : 'normal'}`}>
+            {fishingAdvice.mood}
+          </div>
+          <div className="fishing-tips">
+            <div className="fishing-tip">💡 {fishingAdvice.advice}</div>
+            <div className="fishing-tip">🪝 {fishingAdvice.bait}</div>
+          </div>
+          <div className="fishing-pressure">
+            📊 Давление меняется на {fishingAdvice.pressureChange} гПа
+            {Math.abs(parseFloat(fishingAdvice.pressureChange)) > 3 && " ⚠️"}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, currentDate: any }) => {
-  const fishingAdvice = getFishingAdvice(weather, true);
+  const fishingAdvice = getFishingAdvice(weather, false);
   return (
     <div className="main-content">
       <div className="left-column">
@@ -251,14 +306,14 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
             <span>Ветер:</span>
             <span>{weather.current_weather.windspeed.toFixed(1)} м/с</span>
           </div>
-                                  <div className="clothing-advice-section">
-  <div className="section-title">👕 Рекомендации по одежде</div>
-  {getClothingAdvice(weather, false).map((item, index) => (
-    <div key={index} className="advice-item">{item}</div>
-  ))}
-</div>
-        </div>
 
+          <div className="clothing-advice-section">
+            <div className="section-title">👕 Рекомендации по одежде</div>
+            {getClothingAdvice(weather, false).map((item, index) => (
+              <div key={index} className="advice-item">{item}</div>
+            ))}
+          </div>
+        </div>
 
         <div className="navigation-section">
           <Link href="/garden" className="nav-button">
@@ -283,28 +338,36 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
           </div>
         </div>
         <div className="fishing-advice-section">
-  <div className="section-title">🎣 Шепот рыбака</div>
-  <div className={`fishing-mood ${fishingAdvice.isGood ? 'good' : 'normal'}`}>
-    {fishingAdvice.mood}
-  </div>
-  <div className="fishing-tips">
-    <div className="fishing-tip">💡 {fishingAdvice.advice}</div>
-    <div className="fishing-tip">🪝 {fishingAdvice.bait}</div>
-  </div>
-  <div className="fishing-pressure">
-    📊 Давление меняется на {fishingAdvice.pressureChange} гПа
-    {Math.abs(parseFloat(fishingAdvice.pressureChange)) > 3 && " ⚠️"}
-  </div>
-</div>
+          <div className="section-title">🎣 Шепот рыбака</div>
+          <div className={`fishing-mood ${fishingAdvice.isGood ? 'good' : 'normal'}`}>
+            {fishingAdvice.mood}
+          </div>
+          <div className="fishing-tips">
+            <div className="fishing-tip">💡 {fishingAdvice.advice}</div>
+            <div className="fishing-tip">🪝 {fishingAdvice.bait}</div>
+          </div>
+          <div className="fishing-pressure">
+            📊 Давление меняется на {fishingAdvice.pressureChange} гПа
+            {Math.abs(parseFloat(fishingAdvice.pressureChange)) > 3 && " ⚠️"}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 export default function Home() {
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
   const [forecastPeriod, setForecastPeriod] = useState('today');
   const [currentTime, setCurrentTime] = useState<string>('');
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [email, setEmail] = useState('')
+const [password, setPassword] = useState('')
+const [confirmPassword, setConfirmPassword] = useState('')
+const [loading, setLoading] = useState(false)
+const [authError, setAuthError] = useState('')
+const [authSuccess, setAuthSuccess] = useState('')
 
   const updateTime = () => {
     setCurrentTime(new Date().toLocaleTimeString('ru-RU', { 
@@ -313,6 +376,46 @@ export default function Home() {
       minute: '2-digit'
     }));
   };
+  const supabase = createClient()
+
+const handleAuth = async (isLogin: boolean) => {
+  setLoading(true)
+  setAuthError('')
+  setAuthSuccess('')
+
+  // Проверка пароля для регистрации
+  if (!isLogin && password !== confirmPassword) {
+    setAuthError('Пароли не совпадают')
+    setLoading(false)
+    return
+  }
+
+  try {
+    if (isLogin) {
+      // Вход
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
+      setIsAuthModalOpen(false)
+      setAuthSuccess('Успешный вход!')
+    } else {
+      // Регистрация
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      })
+      if (error) throw error
+      setAuthSuccess('Проверьте email для подтверждения регистрации!')
+      setActiveTab('login') // Переключаем на вкладку входа
+    }
+  } catch (error: any) {
+    setAuthError(error.message)
+  } finally {
+    setLoading(false)
+  }
+}
 
   const getWeather = async () => {
     try {
@@ -356,9 +459,16 @@ export default function Home() {
           <div className="logo-main">WINTER</div>
           <div className="logo-sub">SALE</div>
         </div>
+        <div className="auth-section">
+        </div>
         <div className="time-section">
           <div className="current-time">{currentTime}</div>
         </div>
+        <div className="auth-section">
+                                <button className="login-btn" onClick={() => setIsAuthModalOpen(true)}>
+            👤 Войти
+          </button>
+          </div>
       </div>
 
       <div className="forecast-buttons">
@@ -386,7 +496,93 @@ export default function Home() {
         >
           НА 6 ДНЕЙ
         </button>
+         <Link href="/districts" className="districts-btn">
+  🗺️ Районы
+</Link>
       </div>
+
+
+    {isAuthModalOpen && (
+  <div className="modal-overlay">
+    <div className="auth-modal">
+      <div className="modal-header">
+        <h2>Вход в аккаунт</h2>
+        <button className="close-btn" onClick={() => setIsAuthModalOpen(false)}>×</button>
+      </div>
+      
+      <div className="auth-tabs">
+        <button 
+          className={activeTab === 'login' ? 'tab-active' : ''}
+          onClick={() => setActiveTab('login')}
+        >
+          Вход
+        </button>
+        <button 
+          className={activeTab === 'register' ? 'tab-active' : ''}
+          onClick={() => setActiveTab('register')}
+        >
+          Регистрация
+        </button>
+      </div>
+      
+      {activeTab === 'login' ? (
+        <div className="auth-form">
+          <input 
+            type="email" 
+            placeholder="Email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input 
+            type="password" 
+            placeholder="Пароль" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {authError && <div className="auth-error">{authError}</div>}
+          {authSuccess && <div className="auth-success">{authSuccess}</div>}
+          <button 
+            className="submit-btn" 
+            onClick={() => handleAuth(true)}
+            disabled={loading}
+          >
+            {loading ? 'Загрузка...' : 'Войти'}
+          </button>
+        </div>
+      ) : (
+        <div className="auth-form">
+          <input 
+            type="email" 
+            placeholder="Email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input 
+            type="password" 
+            placeholder="Пароль" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <input 
+            type="password" 
+            placeholder="Повторите пароль" 
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+          {authError && <div className="auth-error">{authError}</div>}
+          {authSuccess && <div className="auth-success">{authSuccess}</div>}
+          <button 
+            className="submit-btn" 
+            onClick={() => handleAuth(false)}
+            disabled={loading}
+          >
+            {loading ? 'Загрузка...' : 'Зарегистрироваться'}
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
       {forecastPeriod === 'today' && <CurrentWeather weather={weather} currentDate={currentDate} />}
       {forecastPeriod === 'tomorrow' && <TomorrowWeather weather={weather} />}
