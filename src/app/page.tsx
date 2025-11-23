@@ -256,7 +256,7 @@ const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
           </div>
         </div>
         <div className="fishing-advice-section">
-          <div className="section-title">🎣 Шепот рыбака</div>
+          <div className="section-title">🎣 Рыбалка в Омске</div>
           <div className={`fishing-mood ${fishingAdvice.isGood ? 'good' : 'normal'}`}>
             {fishingAdvice.mood}
           </div>
