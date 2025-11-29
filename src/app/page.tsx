@@ -143,7 +143,7 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => 
   };
 };
 
-const MiltiDayForecast = ({days, weather} : {days:number, weather:WeatherData}) => {
+const MiltiDayForecast = ({days, weather, onDayClick} : {days:number, weather:WeatherData, onDayClick: (dayIndex:number)=> void}) => {
   const getDayName = (dateString:string) => {
     const date = new Date(dateString + "T00:00:00")
     return date.toLocaleDateString('ru-RU', {weekday: "long"});
@@ -159,7 +159,7 @@ const MiltiDayForecast = ({days, weather} : {days:number, weather:WeatherData}) 
       {weather.daily.time.slice(1, days + 1).map((date, index) => {
         const dataIndex = index + 1;
         return (
-          <div key={date} className="forecast-day">
+          <div key={date} className="forecast-day" onClick={()=> onDayClick(dataIndex)}>
             <div className="day-name">{getDayName(date)}</div>
             <div className="day-date">{formatDate(date)}</div>
             <div className="day-temp">
@@ -368,6 +368,7 @@ const [confirmPassword, setConfirmPassword] = useState('')
 const [loading, setLoading] = useState(false)
 const [authError, setAuthError] = useState('')
 const [authSuccess, setAuthSuccess] = useState('')
+const [selectedDay, setSelectedDay] = useState<number | null>(null)
 
   const updateTime = () => {
     setCurrentTime(new Date().toLocaleTimeString('ru-RU', { 
@@ -392,8 +393,7 @@ const handleAuth = async (isLogin: boolean) => {
 
   try {
     if (isLogin) {
-      // Вход
-      const { error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
@@ -401,14 +401,13 @@ const handleAuth = async (isLogin: boolean) => {
       setIsAuthModalOpen(false)
       setAuthSuccess('Успешный вход!')
     } else {
-      // Регистрация
       const { error } = await supabase.auth.signUp({
         email,
         password,
       })
       if (error) throw error
       setAuthSuccess('Проверьте email для подтверждения регистрации!')
-      setActiveTab('login') // Переключаем на вкладку входа
+      setActiveTab('login') 
     }
   } catch (error: any) {
     setAuthError(error.message)
@@ -428,6 +427,7 @@ const handleAuth = async (isLogin: boolean) => {
       console.log("error");
     }
   };
+  
 
   useEffect(() => {
     getWeather();
@@ -451,6 +451,11 @@ const handleAuth = async (isLogin: boolean) => {
   };
 
   const currentDate = getCurrentDate();
+  <MiltiDayForecast 
+  days={6} 
+  weather={weather} 
+  onDayClick={setSelectedDay}
+/>
 
   return (
     <div className="container">
@@ -583,11 +588,40 @@ const handleAuth = async (isLogin: boolean) => {
     </div>
   </div>
 )}
+{selectedDay !== null && (
+  <div className="modal-overlay">
+    <div className="forecast-modal">
+      <div className="modal-header">
+        <h2>Прогноз на {new Date(weather.daily.time[selectedDay]).toLocaleDateString('ru-RU')}</h2>
+        <button className="close-btn" onClick={() => setSelectedDay(null)}>×</button>
+      </div>
+      
+      <div className="forecast-details">
+        <div className="detail-item">
+          <span>Макс. температура:</span>
+          <span>{Math.round(weather.daily.temperature_2m_max[selectedDay])}°C</span>
+        </div>
+        <div className="detail-item">
+          <span>Мин. температура:</span>
+          <span>{Math.round(weather.daily.temperature_2m_min[selectedDay])}°C</span>
+        </div>
+        <div className="detail-item">
+          <span>Осадки:</span>
+          <span>{weather.daily.precipitation_sum[selectedDay]} мм</span>
+        </div>
+        <div className="detail-item">
+          <span>Погода:</span>
+          <span>{weatherCodes[weather.daily.weathercode[selectedDay]]}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {forecastPeriod === 'today' && <CurrentWeather weather={weather} currentDate={currentDate} />}
       {forecastPeriod === 'tomorrow' && <TomorrowWeather weather={weather} />}
-      {forecastPeriod === '3days' && <MiltiDayForecast days={3} weather={weather} />}
-      {forecastPeriod === '6days' && <MiltiDayForecast days={6} weather={weather} />}
+      {forecastPeriod === '3days' && <MiltiDayForecast days={3} weather={weather} onDayClick={setSelectedDay}/>}
+      {forecastPeriod === '6days' && <MiltiDayForecast days={6} weather={weather}  onDayClick={setSelectedDay}/>}
     </div>
   );
 }
