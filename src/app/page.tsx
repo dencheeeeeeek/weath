@@ -392,7 +392,6 @@ export default function Home() {
   };
 
   const handleAuth = async (isLogin: boolean) => {
-    // ВАЖНО: Проверяем supabase
     if (!supabase) {
       setAuthError('Система авторизации временно недоступна');
       return;
@@ -419,11 +418,16 @@ export default function Home() {
         if (error) throw error;
         
         setAuthSuccess('Вход успешен!');
+        
+        // Сохраняем username из metadata
+        const userMetadata = data.user?.user_metadata;
+        const displayUsername = userMetadata?.username || email.split('@')[0];
+        
         setTimeout(() => {
           setIsAuthModalOpen(false);
           setUser({ 
             email, 
-            username: data.user?.user_metadata?.username || email.split('@')[0] 
+            username: displayUsername 
           });
         }, 1500);
       } else {
@@ -432,34 +436,33 @@ export default function Home() {
           email,
           password,
           options: {
-            data: { username },
-            emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`
+            data: { username }
           }
         });
         
         if (signUpError) throw signUpError;
         
         if (user) {
-          // Пытаемся создать профиль
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: user.id,
-              username: username,
-              email: email
-            }, {
-              onConflict: 'id'
-            });
-          
-          if (profileError) {
-            console.warn('Не удалось создать профиль:', profileError.message);
-            // Игнорируем ошибку профиля
+          // Пытаемся создать профиль (но игнорируем ошибки)
+          try {
+            await supabase
+              .from('profiles')
+              .upsert({
+                id: user.id,
+                username: username,
+                email: email
+              }, { onConflict: 'id' });
+          } catch (profileError) {
+            console.warn('Profile error (ignored):', profileError);
           }
           
           setAuthSuccess('Регистрация успешна!');
           setTimeout(() => {
             setIsAuthModalOpen(false);
-            setUser({ email, username });
+            setUser({ 
+              email, 
+              username: username 
+            });
           }, 2000);
         }
       }
@@ -483,9 +486,28 @@ export default function Home() {
       if (supabase) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Получаем username из metadata или profiles таблицы
+          const userMetadata = user.user_metadata;
+          let displayUsername = userMetadata?.username || user.email?.split('@')[0];
+          
+          // Пробуем получить username из profiles таблицы
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('username')
+              .eq('id', user.id)
+              .single();
+            
+            if (profile?.username) {
+              displayUsername = profile.username;
+            }
+          } catch (error) {
+            // Игнорируем ошибку - используем username из metadata
+          }
+          
           setUser({
             email: user.email,
-            username: user.user_metadata?.username || user.email?.split('@')[0]
+            username: displayUsername
           });
         }
       }
