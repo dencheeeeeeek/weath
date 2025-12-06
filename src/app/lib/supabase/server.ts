@@ -1,21 +1,32 @@
-import { createBrowserClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-export const createClient = () => {
-  // Проверяем наличие переменных окружения
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('Supabase environment variables are not set')
-    console.log('URL:', supabaseUrl)
-    console.log('Key exists:', !!supabaseKey)
-    return null
-  }
-  
-  try {
-    return createBrowserClient(supabaseUrl, supabaseKey)
-  } catch (error) {
-    console.error('Failed to create Supabase client:', error)
-    return null
-  }
+export const createClient = async () => {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch (error) {
+            // Игнорируем ошибку в Server Components
+          }
+        },
+        remove(name: string, options: CookieOptions) {
+          try {
+            cookieStore.set({ name, value: '', ...options })
+          } catch (error) {
+            // Игнорируем ошибку в Server Components
+          }
+        },
+      },
+    }
+  )
 }
