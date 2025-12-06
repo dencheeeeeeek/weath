@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import Link from 'next/link';
+import { createClient } from '@/app/lib/supabase/client';
 
 interface WeatherData{
   current_weather:{
@@ -50,9 +51,6 @@ const weatherCodes: { [key: number]: string } = {
   80: "Небольшой ливень", 81: "Ливень", 82: "Сильный ливень", 85: "Небольшой снегопад",
   86: "Снегопад", 95: "Гроза", 96: "Гроза с градом", 99: "Сильная гроза с градом"
 };
-
-// ВРЕМЕННО: Отключаем Supabase для сборки
-const ENABLE_SUPABASE = false;
 
 const getClothingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => {
   const temp = isTomorrow ? weather.daily.temperature_2m_max[1] : weather.current_weather.temperature;
@@ -140,7 +138,7 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => 
   };
 };
 
-const MiltiDayForecast = ({days, weather, onDayClick} : {days:number, weather:WeatherData, onDayClick: (dayIndex: number) => void}) => {
+const MultiDayForecast = ({days, weather, onDayClick} : {days:number, weather:WeatherData, onDayClick: (dayIndex: number) => void}) => {
   const getDayName = (dateString:string) => {
     const date = new Date(dateString + "T00:00:00")
     return date.toLocaleDateString('ru-RU', {weekday: "long"});
@@ -361,7 +359,6 @@ export default function Home() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   
-  // ВРЕМЕННО: Отключаем auth состояния
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -370,6 +367,9 @@ export default function Home() {
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
   const [user, setUser] = useState<any>(null);
+
+  // Инициализация Supabase клиента
+  const supabase = createClient();
 
   const updateTime = () => {
     setCurrentTime(new Date().toLocaleTimeString('ru-RU', { 
@@ -391,13 +391,12 @@ export default function Home() {
     }
   };
 
-  // ВРЕМЕННО: Упрощенная auth функция
   const handleAuth = async (isLogin: boolean) => {
-    if (!ENABLE_SUPABASE) {
-      setAuthError('Авторизация временно отключена');
+    if (!supabase) {
+      setAuthError('Supabase client not initialized');
       return;
     }
-    
+
     setLoading(true);
     setAuthError('');
     setAuthSuccess('');
@@ -409,22 +408,100 @@ export default function Home() {
     }
 
     try {
-      // Временная заглушка
-      setAuthSuccess(isLogin ? 'Вход выполнен (заглушка)' : 'Регистрация успешна (заглушка)');
-      setTimeout(() => {
-        setIsAuthModalOpen(false);
-        setUser({ email, username });
-      }, 1500);
+      if (isLogin) {
+        // ЛОГИН
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        setAuthSuccess('Вход успешен!');
+        setTimeout(() => {
+          setIsAuthModalOpen(false);
+          setUser({ email, username: data.user?.user_metadata?.username || email.split('@')[0] });
+        }, 1500);
+      } else {
+        // РЕГИСТРАЦИЯ
+        const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { username }
+          }
+        });
+        
+        if (signUpError) throw signUpError;
+        
+        if (user) {
+          // Пытаемся создать профиль с повторными попытками
+          let retries = 3;
+          let profileError = null;
+          
+          while (retries > 0) {
+            const { error } = await supabase
+              .from('profiles')
+              .upsert({
+                id: user.id,
+                username: username,
+                email: email,
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'id'
+              });
+            
+            if (!error) {
+              profileError = null;
+              break;
+            }
+            
+            profileError = error;
+            retries--;
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+          
+          if (profileError) {
+            console.warn('Не удалось создать профиль:', profileError.message);
+            // Игнорируем ошибку профиля - пользователь зарегистрирован
+          }
+          
+          setAuthSuccess('Регистрация успешна! Проверьте email для подтверждения.');
+          setTimeout(() => {
+            setIsAuthModalOpen(false);
+            setUser({ email, username });
+          }, 2000);
+        }
+      }
     } catch (error: any) {
-      setAuthError(error.message);
+      setAuthError(error.message || 'Произошла ошибка');
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
   };
+
+  // Проверяем текущего пользователя при загрузке
+  useEffect(() => {
+    const checkUser = async () => {
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser({
+            email: user.email,
+            username: user.user_metadata?.username || user.email?.split('@')[0]
+          });
+        }
+      }
+    };
+    checkUser();
+  }, [supabase]);
 
   useEffect(() => {
     getWeather();
@@ -505,10 +582,9 @@ export default function Home() {
         <Link href="/districts" className="districts-btn">
           🗺️ Районы
         </Link>
-        {/* Временное отключение favorites */}
-        {/* <Link href="/favorites" className="districts-btn">
+        <Link href="/favorites" className="districts-btn">
           ⭐ Избранное
-        </Link> */}
+        </Link>
       </div>
 
       {isAuthModalOpen && (
@@ -557,11 +633,6 @@ export default function Home() {
                 >
                   {loading ? 'Загрузка...' : 'Войти'}
                 </button>
-                {!ENABLE_SUPABASE && (
-                  <div className="auth-warning">
-                    ⚠️ Авторизация временно в режиме заглушки
-                  </div>
-                )}
               </div>
             ) : (
               <div className="auth-form">
@@ -598,11 +669,6 @@ export default function Home() {
                 >
                   {loading ? 'Загрузка...' : 'Зарегистрироваться'}
                 </button>
-                {!ENABLE_SUPABASE && (
-                  <div className="auth-warning">
-                    ⚠️ Авторизация временно в режиме заглушки
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -641,8 +707,8 @@ export default function Home() {
 
       {forecastPeriod === 'today' && <CurrentWeather weather={weather} currentDate={currentDate} />}
       {forecastPeriod === 'tomorrow' && <TomorrowWeather weather={weather} onDayClick={setSelectedDay} />}
-      {forecastPeriod === '3days' && <MiltiDayForecast days={3} weather={weather} onDayClick={setSelectedDay} />}
-      {forecastPeriod === '6days' && <MiltiDayForecast days={6} weather={weather} onDayClick={setSelectedDay} />}
+      {forecastPeriod === '3days' && <MultiDayForecast days={3} weather={weather} onDayClick={setSelectedDay} />}
+      {forecastPeriod === '6days' && <MultiDayForecast days={6} weather={weather} onDayClick={setSelectedDay} />}
     </div>
   );
 }
