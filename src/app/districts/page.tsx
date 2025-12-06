@@ -144,6 +144,11 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
         <div className="time-section">
           <div className="current-time">{lastUpdate}</div>
         </div>
+        <div className="auth-section">
+          <Link href="/" className="login-btn">
+            ← Назад
+          </Link>
+        </div>
       </div>
 
       <div className="districts-header">
@@ -159,6 +164,7 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
             <button 
               className={`favorite-btn ${favorites.includes(district.name) ? 'favorited' : ''}`}
               onClick={() => toggleFavorite(district.name)}
+              aria-label={favorites.includes(district.name) ? 'Удалить из избранного' : 'Добавить в избранное'}
             >
               {favorites.includes(district.name) ? '★' : '☆'}
             </button>
@@ -178,12 +184,6 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="navigation-section">
-        <Link href="/" className="nav-button">
-          ← Назад к погоде
-        </Link>
       </div>
     </div>
   );

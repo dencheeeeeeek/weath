@@ -723,38 +723,35 @@ const handleAuth = async (isLogin: boolean) => {
   const currentDate = getCurrentDate();
 
   return (
-    <div className="container">
-<div className="top-section">
-  <div className="logo-section">
-    <div className="logo-main">WINTER</div>
-    <div className="logo-sub">SALE</div>
-  </div>
+        <div className="container">
+      <div className="top-section">
+        <div className="logo-section">
+          <div className="logo-main">WINTER</div>
+          <div className="logo-sub">SALE</div>
+        </div>
 
-  <div className="header-center">
-    <div className="time-section">
-      <div className="current-time">{currentTime}</div>
-    </div>
-  </div>
+        <div className="time-section">
+          <div className="current-time">{currentTime}</div>
+        </div>
 
-  {/* Кнопка авторизации в правом верхнем углу */}
-  <div className="auth-section">
-    {user ? (
-      <div className="user-info">
-        <span className="username">👤 {user.username}</span>
-        <button className="logout-btn" onClick={handleLogout}>
-          Выйти
-        </button>
+        <div className="auth-section">
+          {user ? (
+            <div className="user-info">
+              <span className="username">👤 {user.username}</span>
+              <button className="logout-btn" onClick={handleLogout}>
+                Выйти
+              </button>
+            </div>
+          ) : (
+            <button 
+              className="login-btn" 
+              onClick={() => setIsAuthModalOpen(true)}
+            >
+              Войти
+            </button>
+          )}
+        </div>
       </div>
-    ) : (
-      <button 
-        className="login-btn" 
-        onClick={() => setIsAuthModalOpen(true)}
-      >
-        Войти
-      </button>
-    )}
-  </div>
-</div>
 
       <div className="forecast-buttons">
         <button 
