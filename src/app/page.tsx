@@ -585,23 +585,54 @@ export default function Home() {
   const supabase = createClient();
 
   // Автоматически проверяем пользователя каждые 3 секунды
-  useEffect(() => {
-    const checkUser = async () => {
-      if (supabase) {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        if (currentUser && !user) {
+useEffect(() => {
+  const checkUser = async () => {
+    if (supabase) {
+      const { data: { user: currentUser }, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Ошибка получения пользователя:', error);
+        return;
+      }
+      
+      if (currentUser) {
+        // Проверяем, не установлен ли уже этот пользователь
+        if (!user || user.id !== currentUser.id) {
           setUser({
+            id: currentUser.id,
             email: currentUser.email,
-            username: currentUser.user_metadata?.username || currentUser.email?.split('@')[0]
+            username: currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'Пользователь'
           });
         }
+      } else {
+        // Если пользователя нет, сбрасываем состояние
+        if (user) {
+          setUser(null);
+        }
       }
-    };
+    }
+  };
+  
+  checkUser();
+  
+  // Подписываемся на изменения авторизации
+  if (supabase) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'Пользователь'
+        });
+      } else {
+        setUser(null);
+      }
+    });
     
-    checkUser();
-    const interval = setInterval(checkUser, 3000);
-    return () => clearInterval(interval);
-  }, [supabase, user]);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }
+}, [supabase]);
 
   const updateTime = () => {
     setCurrentTime(new Date().toLocaleTimeString('ru-RU', { 
@@ -623,88 +654,77 @@ export default function Home() {
     }
   };
 
-  const handleAuth = async (isLogin: boolean) => {
-    if (!supabase) {
-      setAuthError('Система авторизации временно недоступна');
-      return;
-    }
+const handleAuth = async (isLogin: boolean) => {
+  if (!supabase) {
+    setAuthError('Система авторизации временно недоступна');
+    return;
+  }
 
-    setLoading(true);
-    setAuthError('');
-    setAuthSuccess('');
+  setLoading(true);
+  setAuthError('');
+  setAuthSuccess('');
 
-    if (!isLogin && password !== confirmPassword) {
-      setAuthError('Пароли не совпадают');
-      setLoading(false);
-      return;
-    }
+  if (!isLogin && password !== confirmPassword) {
+    setAuthError('Пароли не совпадают');
+    setLoading(false);
+    return;
+  }
 
-    try {
-      if (isLogin) {
-        // ЛОГИН
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (error) throw error;
-        
-        setAuthSuccess('Вход успешен!');
-        
-        // Сразу устанавливаем пользователя
+  try {
+    if (isLogin) {
+      // ЛОГИН
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      // Сразу обновляем пользователя
+      if (data.user) {
         setUser({
-          email,
-          username: data.user?.user_metadata?.username || email.split('@')[0]
+          id: data.user.id,
+          email: data.user.email,
+          username: data.user.user_metadata?.username || email.split('@')[0] || 'Пользователь'
+        });
+      }
+      
+      setAuthSuccess('Вход успешен!');
+      setTimeout(() => {
+        setIsAuthModalOpen(false);
+      }, 1500);
+    } else {
+      // РЕГИСТРАЦИЯ
+      const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username }
+        }
+      });
+      
+      if (signUpError) throw signUpError;
+      
+      if (newUser) {
+        // Сразу обновляем пользователя
+        setUser({
+          id: newUser.id,
+          email: newUser.email,
+          username: username || newUser.email?.split('@')[0] || 'Пользователь'
         });
         
+        setAuthSuccess('Регистрация успешна!');
         setTimeout(() => {
           setIsAuthModalOpen(false);
-        }, 1500);
-      } else {
-        // РЕГИСТРАЦИЯ
-        const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { username }
-          }
-        });
-        
-        if (signUpError) throw signUpError;
-        
-        if (newUser) {
-          // Пытаемся создать профиль (но игнорируем ошибки)
-          try {
-            await supabase
-              .from('profiles')
-              .upsert({
-                id: newUser.id,
-                username: username,
-                email: email
-              }, { onConflict: 'id' });
-          } catch (profileError) {
-            console.warn('Profile error (ignored):', profileError);
-          }
-          
-          setAuthSuccess('Регистрация успешна!');
-          
-          // Сразу устанавливаем пользователя
-          setUser({
-            email,
-            username: username
-          });
-          
-          setTimeout(() => {
-            setIsAuthModalOpen(false);
-          }, 2000);
-        }
+        }, 2000);
       }
-    } catch (error: any) {
-      setAuthError(error.message || 'Произошла ошибка');
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error: any) {
+    setAuthError(error.message || 'Произошла ошибка');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = async () => {
     if (supabase) {
@@ -746,22 +766,45 @@ export default function Home() {
           <div className="logo-main">WINTER</div>
           <div className="logo-sub">SALE</div>
         </div>
-        <div className="auth-section">
-          {user ? (
-            <div className="user-section">
-              <span className="username">
-                👤 {user.username || user.email?.split('@')[0] || 'Пользователь'}
-              </span>
-              <button className="logout-btn" onClick={handleLogout}>
-                Выйти
-              </button>
-            </div>
-          ) : (
-            <button className="login-btn" onClick={() => setIsAuthModalOpen(true)}>
-              👤 Войти
-            </button>
-          )}
-        </div>
+<div className="auth-section">
+  {user ? (
+    <div className="user-section" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <span className="username" style={{ color: 'white', fontSize: '14px' }}>
+        👤 {user.username || user.email || 'Пользователь'}
+      </span>
+      <button 
+        className="logout-btn" 
+        onClick={handleLogout}
+        style={{
+          background: 'rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.3)',
+          color: 'white',
+          padding: '5px 15px',
+          borderRadius: '20px',
+          cursor: 'pointer'
+        }}
+      >
+        Выйти
+      </button>
+    </div>
+  ) : (
+    <button 
+      className="login-btn" 
+      onClick={() => setIsAuthModalOpen(true)}
+      style={{
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        border: 'none',
+        color: 'white',
+        padding: '10px 20px',
+        borderRadius: '25px',
+        cursor: 'pointer',
+        fontWeight: '600'
+      }}
+    >
+      👤 Войти
+    </button>
+  )}
+</div>
         <div className="time-section">
           <div className="current-time">{currentTime}</div>
         </div>
