@@ -560,9 +560,9 @@ const handleAuth = async (isLogin: boolean) => {
         <Link href="/districts" className="districts-btn">
           🗺️ Районы
         </Link>
-        <Link href="/favorites" className="districts-btn">
-          ⭐ Избранное
-        </Link>
+{/* <Link href="/favorites" className="districts-btn">
+  ⭐ Избранное
+</Link> */}
       </div>
 
       {isAuthModalOpen && (
