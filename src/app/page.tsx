@@ -392,8 +392,9 @@ export default function Home() {
   };
 
   const handleAuth = async (isLogin: boolean) => {
+    // ВАЖНО: Проверяем supabase
     if (!supabase) {
-      setAuthError('Supabase client not initialized');
+      setAuthError('Система авторизации временно недоступна');
       return;
     }
 
@@ -420,7 +421,10 @@ export default function Home() {
         setAuthSuccess('Вход успешен!');
         setTimeout(() => {
           setIsAuthModalOpen(false);
-          setUser({ email, username: data.user?.user_metadata?.username || email.split('@')[0] });
+          setUser({ 
+            email, 
+            username: data.user?.user_metadata?.username || email.split('@')[0] 
+          });
         }, 1500);
       } else {
         // РЕГИСТРАЦИЯ
@@ -428,45 +432,31 @@ export default function Home() {
           email,
           password,
           options: {
-            data: { username }
+            data: { username },
+            emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`
           }
         });
         
         if (signUpError) throw signUpError;
         
         if (user) {
-          // Пытаемся создать профиль с повторными попытками
-          let retries = 3;
-          let profileError = null;
-          
-          while (retries > 0) {
-            const { error } = await supabase
-              .from('profiles')
-              .upsert({
-                id: user.id,
-                username: username,
-                email: email,
-                updated_at: new Date().toISOString()
-              }, {
-                onConflict: 'id'
-              });
-            
-            if (!error) {
-              profileError = null;
-              break;
-            }
-            
-            profileError = error;
-            retries--;
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
+          // Пытаемся создать профиль
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: user.id,
+              username: username,
+              email: email
+            }, {
+              onConflict: 'id'
+            });
           
           if (profileError) {
             console.warn('Не удалось создать профиль:', profileError.message);
-            // Игнорируем ошибку профиля - пользователь зарегистрирован
+            // Игнорируем ошибку профиля
           }
           
-          setAuthSuccess('Регистрация успешна! Проверьте email для подтверждения.');
+          setAuthSuccess('Регистрация успешна!');
           setTimeout(() => {
             setIsAuthModalOpen(false);
             setUser({ email, username });
