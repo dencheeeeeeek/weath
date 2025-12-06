@@ -997,3 +997,47 @@ body {
 a.districts-btn {
   text-decoration: none;
 }
+/* Стили для страницы избранного */
+.page-title {
+  color: white;
+  text-align: center;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.auth-message {
+  text-align: center;
+  color: white;
+  margin-top: 50px;
+}
+
+.auth-message h2 {
+  margin-bottom: 30px;
+}
+
+.empty-favorites {
+  text-align: center;
+  color: white;
+  padding: 40px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
+
+.empty-favorites p {
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.district-loading {
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+.district-time {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  margin-top: 10px;
+}

@@ -52,11 +52,14 @@ const weatherCodes: { [key: number]: string } = {
   86: "Снегопад", 95: "Гроза", 96: "Гроза с градом", 99: "Сильная гроза с градом"
 };
 
-const createClient = () =>
-  createBrowserClient(
+const createClient = () => {
+  if (typeof window === 'undefined') return null;
+  
+  return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
+}
 
 const getClothingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => {
   const temp = isTomorrow ? weather.daily.temperature_2m_max[1] : weather.current_weather.temperature;
@@ -144,7 +147,7 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => 
   };
 };
 
-const MiltiDayForecast = ({ days, weather, onDayClick }: { days: number, weather: WeatherData, onDayClick: (dayIndex: number) => void }) => {
+const MiltiDayForecast = ({days, weather, onDayClick} : {days:number, weather:WeatherData, onDayClick: (dayIndex: number) => void}) => {
   const getDayName = (dateString:string) => {
     const date = new Date(dateString + "T00:00:00")
     return date.toLocaleDateString('ru-RU', {weekday: "long"});
@@ -380,11 +383,13 @@ export default function Home() {
   // Check auth state
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+      }
     };
     checkUser();
-  }, []);
+  }, [supabase]);
 
   const updateTime = () => {
     setCurrentTime(new Date().toLocaleTimeString('ru-RU', { 
@@ -406,65 +411,74 @@ export default function Home() {
     }
   };
 
-  const handleAuth = async (isLogin: boolean) => {
-    setLoading(true);
-    setAuthError('');
-    setAuthSuccess('');
+const handleAuth = async (isLogin: boolean) => {
+  setLoading(true);
+  setAuthError('');
+  setAuthSuccess('');
 
-    if (!isLogin && password !== confirmPassword) {
-      setAuthError('Пароли не совпадают');
-      setLoading(false);
-      return;
-    }
+  if (!isLogin && password !== confirmPassword) {
+    setAuthError('Пароли не совпадают');
+    setLoading(false);
+    return;
+  }
 
-    try {
-      if (isLogin) {
-        // Login
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        setIsAuthModalOpen(false);
-        setAuthSuccess('Успешный вход!');
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-      } else {
-        // Register
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        
-        if (authError) throw authError;
+  try {
+    if (isLogin) {
+      // Login
+      if (!supabase) throw new Error('Supabase client not available');
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      if (!data) throw new Error('No data returned');
+      
+      setIsAuthModalOpen(false);
+      setAuthSuccess('Успешный вход!');
+      setUser(data.user);
+    } else {
+      // Register
+      if (!supabase) throw new Error('Supabase client not available');
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      if (!data) throw new Error('No data returned');
 
-        // Create profile with username
-        if (authData.user) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: authData.user.id,
-              email: email,
-              username: username,
-              updated_at: new Date().toISOString(),
-            });
+      // Create profile with username
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            email: email,
+            username: username,
+            updated_at: new Date().toISOString(),
+          });
 
-          if (profileError) throw profileError;
-        }
-
-        setAuthSuccess('Проверьте email для подтверждения регистрации!');
-        setActiveTab('login');
+        if (profileError) throw profileError;
       }
-    } catch (error: any) {
-      setAuthError(error.message);
-    } finally {
-      setLoading(false);
+
+      setAuthSuccess('Проверьте email для подтверждения регистрации!');
+      setActiveTab('login');
     }
-  };
+  } catch (error: any) {
+    setAuthError(error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    if (supabase) {
+      await supabase.auth.signOut();
+      setUser(null);
+    }
   };
 
   useEffect(() => {
@@ -489,35 +503,6 @@ export default function Home() {
   };
 
   const currentDate = getCurrentDate();
-  const toggleFavoriteDistrict = async (districtName: string) => {
-  if (!user) return;
-  
-  try {
-    // Получаем текущие избранные
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('favorite_districts')
-      .eq('id', user.id)
-      .single();
-    
-    const currentFavorites = profile?.favorite_districts || [];
-    const isFavorite = currentFavorites.includes(districtName);
-    
-    // Обновляем массив
-const newFavorites = isFavorite
-  ? currentFavorites.filter((f: string) => f !== districtName)  // ← добавь : string
-  : [...currentFavorites, districtName];
-    
-    // Сохраняем в Supabase
-    await supabase
-      .from('profiles')
-      .update({ favorite_districts: newFavorites })
-      .eq('id', user.id);
-    
-  } catch (error) {
-    console.error('Ошибка сохранения избранного:', error);
-  }
-};
 
   return (
     <div className="container">
@@ -572,11 +557,11 @@ const newFavorites = isFavorite
         >
           НА 6 ДНЕЙ
         </button>
-                <Link href="/favorites" className="nav-button">
-  ⭐ Избранное
-</Link>
         <Link href="/districts" className="districts-btn">
           🗺️ Районы
+        </Link>
+        <Link href="/favorites" className="districts-btn">
+          ⭐ Избранное
         </Link>
       </div>
 
