@@ -520,7 +520,6 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
   📊 Давление меняется на {fishingAdvice.pressureChange} гПа
   {Math.abs(fishingAdvice.pressureChange) > 3 && " ⚠️"}
 </div>
-4. Полна
         </div>
       </div>
     </div>
