@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from "react";
 import Link from 'next/link';
-import { createBrowserClient } from '@supabase/ssr'
 
 interface WeatherData{
   current_weather:{
@@ -52,14 +51,8 @@ const weatherCodes: { [key: number]: string } = {
   86: "Снегопад", 95: "Гроза", 96: "Гроза с градом", 99: "Сильная гроза с градом"
 };
 
-const createClient = () => {
-  if (typeof window === 'undefined') return null;
-  
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
+// ВРЕМЕННО: Отключаем Supabase для сборки
+const ENABLE_SUPABASE = false;
 
 const getClothingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => {
   const temp = isTomorrow ? weather.daily.temperature_2m_max[1] : weather.current_weather.temperature;
@@ -368,7 +361,7 @@ export default function Home() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   
-  // Auth states
+  // ВРЕМЕННО: Отключаем auth состояния
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -377,19 +370,6 @@ export default function Home() {
   const [authError, setAuthError] = useState('');
   const [authSuccess, setAuthSuccess] = useState('');
   const [user, setUser] = useState<any>(null);
-  
-  const supabase = createClient();
-
-  // Check auth state
-  useEffect(() => {
-    const checkUser = async () => {
-      if (supabase) {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
-      }
-    };
-    checkUser();
-  }, [supabase]);
 
   const updateTime = () => {
     setCurrentTime(new Date().toLocaleTimeString('ru-RU', { 
@@ -411,74 +391,39 @@ export default function Home() {
     }
   };
 
-const handleAuth = async (isLogin: boolean) => {
-  setLoading(true);
-  setAuthError('');
-  setAuthSuccess('');
-
-  if (!isLogin && password !== confirmPassword) {
-    setAuthError('Пароли не совпадают');
-    setLoading(false);
-    return;
-  }
-
-  try {
-    if (isLogin) {
-      // Login
-      if (!supabase) throw new Error('Supabase client not available');
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) throw error;
-      if (!data) throw new Error('No data returned');
-      
-      setIsAuthModalOpen(false);
-      setAuthSuccess('Успешный вход!');
-      setUser(data.user);
-    } else {
-      // Register
-      if (!supabase) throw new Error('Supabase client not available');
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      
-      if (error) throw error;
-      if (!data) throw new Error('No data returned');
-
-      // Create profile with username
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            email: email,
-            username: username,
-            updated_at: new Date().toISOString(),
-          });
-
-        if (profileError) throw profileError;
-      }
-
-      setAuthSuccess('Проверьте email для подтверждения регистрации!');
-      setActiveTab('login');
+  // ВРЕМЕННО: Упрощенная auth функция
+  const handleAuth = async (isLogin: boolean) => {
+    if (!ENABLE_SUPABASE) {
+      setAuthError('Авторизация временно отключена');
+      return;
     }
-  } catch (error: any) {
-    setAuthError(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
+    
+    setLoading(true);
+    setAuthError('');
+    setAuthSuccess('');
+
+    if (!isLogin && password !== confirmPassword) {
+      setAuthError('Пароли не совпадают');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Временная заглушка
+      setAuthSuccess(isLogin ? 'Вход выполнен (заглушка)' : 'Регистрация успешна (заглушка)');
+      setTimeout(() => {
+        setIsAuthModalOpen(false);
+        setUser({ email, username });
+      }, 1500);
+    } catch (error: any) {
+      setAuthError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
-    if (supabase) {
-      await supabase.auth.signOut();
-      setUser(null);
-    }
+    setUser(null);
   };
 
   useEffect(() => {
@@ -515,7 +460,7 @@ const handleAuth = async (isLogin: boolean) => {
           {user ? (
             <div className="user-section">
               <span className="username">
-                👤 {user.user_metadata?.username || user.email?.split('@')[0] || 'Пользователь'}
+                👤 {user.username || user.email?.split('@')[0] || 'Пользователь'}
               </span>
               <button className="logout-btn" onClick={handleLogout}>
                 Выйти
@@ -560,9 +505,10 @@ const handleAuth = async (isLogin: boolean) => {
         <Link href="/districts" className="districts-btn">
           🗺️ Районы
         </Link>
-{/* <Link href="/favorites" className="districts-btn">
-  ⭐ Избранное
-</Link> */}
+        {/* Временное отключение favorites */}
+        {/* <Link href="/favorites" className="districts-btn">
+          ⭐ Избранное
+        </Link> */}
       </div>
 
       {isAuthModalOpen && (
@@ -611,6 +557,11 @@ const handleAuth = async (isLogin: boolean) => {
                 >
                   {loading ? 'Загрузка...' : 'Войти'}
                 </button>
+                {!ENABLE_SUPABASE && (
+                  <div className="auth-warning">
+                    ⚠️ Авторизация временно в режиме заглушки
+                  </div>
+                )}
               </div>
             ) : (
               <div className="auth-form">
@@ -647,6 +598,11 @@ const handleAuth = async (isLogin: boolean) => {
                 >
                   {loading ? 'Загрузка...' : 'Зарегистрироваться'}
                 </button>
+                {!ENABLE_SUPABASE && (
+                  <div className="auth-warning">
+                    ⚠️ Авторизация временно в режиме заглушки
+                  </div>
+                )}
               </div>
             )}
           </div>
