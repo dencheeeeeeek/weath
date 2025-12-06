@@ -1137,3 +1137,194 @@ a.districts-btn {
   display: flex;
   justify-content: flex-end;
 }
+/* Top Section Styles - Fixed for all devices */
+.top-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  position: relative;
+  border-bottom: 1px solid #eee;
+  flex-wrap: nowrap;
+  gap: 15px;
+  min-height: 70px;
+}
+
+.logo-section {
+  flex-shrink: 0;
+  min-width: 120px;
+}
+
+.logo-main {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+
+.logo-sub {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 100px;
+}
+
+.time-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.current-time {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+}
+
+.auth-section {
+  flex-shrink: 0;
+  min-width: 100px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Auth Section Styles */
+.login-btn {
+  background: #0070f3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.login-btn:hover {
+  background: #0051b3;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.username {
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.logout-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.logout-btn:hover {
+  background: #d32f2f;
+}
+
+/* Media Queries for responsiveness */
+@media (max-width: 768px) {
+  .top-section {
+    padding: 10px 15px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .logo-section {
+    min-width: 80px;
+  }
+  
+  .logo-main {
+    font-size: 20px;
+  }
+  
+  .current-time {
+    font-size: 16px;
+  }
+  
+  .username {
+    max-width: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px;
+  }
+  
+  .header-center {
+    order: 3;
+    margin-top: 5px;
+  }
+  
+  .logo-section {
+    text-align: center;
+  }
+  
+  .auth-section {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .current-time {
+    font-size: 14px;
+  }
+}
+/* Forecast buttons responsive */
+.forecast-buttons {
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: thin;
+}
+
+.forecast-buttons button,
+.forecast-buttons .districts-btn {
+  padding: 8px 15px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .forecast-buttons {
+    padding: 10px 15px;
+    gap: 8px;
+  }
+  
+  .forecast-buttons button,
+  .forecast-buttons .districts-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
