@@ -371,6 +371,25 @@ export default function Home() {
   // Инициализация Supabase клиента
   const supabase = createClient();
 
+  // Автоматически проверяем пользователя каждые 3 секунды
+  useEffect(() => {
+    const checkUser = async () => {
+      if (supabase) {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (currentUser && !user) {
+          setUser({
+            email: currentUser.email,
+            username: currentUser.user_metadata?.username || currentUser.email?.split('@')[0]
+          });
+        }
+      }
+    };
+    
+    checkUser();
+    const interval = setInterval(checkUser, 3000);
+    return () => clearInterval(interval);
+  }, [supabase, user]);
+
   const updateTime = () => {
     setCurrentTime(new Date().toLocaleTimeString('ru-RU', { 
       timeZone: 'Asia/Omsk',
@@ -419,20 +438,18 @@ export default function Home() {
         
         setAuthSuccess('Вход успешен!');
         
-        // Сохраняем username из metadata
-        const userMetadata = data.user?.user_metadata;
-        const displayUsername = userMetadata?.username || email.split('@')[0];
+        // Сразу устанавливаем пользователя
+        setUser({
+          email,
+          username: data.user?.user_metadata?.username || email.split('@')[0]
+        });
         
         setTimeout(() => {
           setIsAuthModalOpen(false);
-          setUser({ 
-            email, 
-            username: displayUsername 
-          });
         }, 1500);
       } else {
         // РЕГИСТРАЦИЯ
-        const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+        const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -442,13 +459,13 @@ export default function Home() {
         
         if (signUpError) throw signUpError;
         
-        if (user) {
+        if (newUser) {
           // Пытаемся создать профиль (но игнорируем ошибки)
           try {
             await supabase
               .from('profiles')
               .upsert({
-                id: user.id,
+                id: newUser.id,
                 username: username,
                 email: email
               }, { onConflict: 'id' });
@@ -457,12 +474,15 @@ export default function Home() {
           }
           
           setAuthSuccess('Регистрация успешна!');
+          
+          // Сразу устанавливаем пользователя
+          setUser({
+            email,
+            username: username
+          });
+          
           setTimeout(() => {
             setIsAuthModalOpen(false);
-            setUser({ 
-              email, 
-              username: username 
-            });
           }, 2000);
         }
       }
@@ -478,42 +498,10 @@ export default function Home() {
       await supabase.auth.signOut();
     }
     setUser(null);
+    setEmail('');
+    setUsername('');
+    setPassword('');
   };
-
-  // Проверяем текущего пользователя при загрузке
-  useEffect(() => {
-    const checkUser = async () => {
-      if (supabase) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          // Получаем username из metadata или profiles таблицы
-          const userMetadata = user.user_metadata;
-          let displayUsername = userMetadata?.username || user.email?.split('@')[0];
-          
-          // Пробуем получить username из profiles таблицы
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('username')
-              .eq('id', user.id)
-              .single();
-            
-            if (profile?.username) {
-              displayUsername = profile.username;
-            }
-          } catch (error) {
-            // Игнорируем ошибку - используем username из metadata
-          }
-          
-          setUser({
-            email: user.email,
-            username: displayUsername
-          });
-        }
-      }
-    };
-    checkUser();
-  }, [supabase]);
 
   useEffect(() => {
     getWeather();
