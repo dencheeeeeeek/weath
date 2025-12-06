@@ -81,14 +81,14 @@ const getClothingAdvice = (weather: WeatherData, isTomorrow: boolean = false) =>
 };
 
 interface FishingForecast {
-  biteProbability: number; // 0-100%
-  mood: string;           // Настроение рыбы
-  advice: string;         // Советы по рыбалке
-  bait: string;          // Лучшие приманки
-  bestTime: string;      // Лучшее время суток
-  seasonFactor: number;  // Сезонный коэффициент (0.5-1.5)
-  pressureChange: number; // Изменение давления
-  isGood: boolean;       // Хорошие ли условия
+  biteProbability: number;
+  mood: string;
+  advice: string;
+  bait: string;
+  bestTime: string;
+  seasonFactor: number;
+  pressureChange: number;
+  isGood: boolean;
   rating: 'poor' | 'fair' | 'good' | 'excellent';
   factors: {
     temperature: { score: number, desc: string };
@@ -116,99 +116,82 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
   
   // СЕЗОННАЯ КОРРЕКЦИЯ
   const getSeasonFactor = (): { factor: number, desc: string } => {
-    // Зима (Декабрь-Февраль)
     if (month >= 11 || month <= 1) {
-      return { 
-        factor: 0.6, 
-        desc: 'Зимний сезон: рыба менее активна, нужна зимняя снасть' 
-      };
+      return { factor: 0.6, desc: 'Зимний сезон' };
     }
-    // Весна (Март-Май)
     if (month >= 2 && month <= 4) {
-      return { 
-        factor: 1.2, 
-        desc: 'Весенний сезон: нерест, высокая активность после зимы' 
-      };
+      return { factor: 1.2, desc: 'Весенний сезон' };
     }
-    // Лето (Июнь-Август)
     if (month >= 5 && month <= 7) {
-      return { 
-        factor: 0.9, 
-        desc: 'Летний сезон: рыба ищет прохладу, активна на рассвете и закате' 
-      };
+      return { factor: 0.9, desc: 'Летний сезон' };
     }
-    // Осень (Сентябрь-Ноябрь)
-    return { 
-      factor: 1.1, 
-      desc: 'Осенний сесон: рыба нагуливает жир перед зимой, отличный клёв' 
-    };
+    return { factor: 1.1, desc: 'Осенний сесон' };
   };
   
   // ОЦЕНКА ТЕМПЕРАТУРЫ
   const getTemperatureScore = (): { score: number, desc: string } => {
-    if (temp < -20) return { score: 0.1, desc: 'Экстремальный холод: рыба в анабиозе' };
-    if (temp < -10) return { score: 0.3, desc: 'Сильный мороз: очень низкая активность' };
-    if (temp < 0) return { score: 0.5, desc: 'Мороз: нужна зимняя рыбалка' };
-    if (temp < 5) return { score: 0.7, desc: 'Прохладно: рыба умеренно активна' };
-    if (temp < 15) return { score: 1.0, desc: 'Идеальная температура: высокая активность' };
-    if (temp < 22) return { score: 0.8, desc: 'Тепло: хороший клёв, особенно утром' };
-    if (temp < 28) return { score: 0.5, desc: 'Жарко: рыба уходит на глубину' };
-    return { score: 0.2, desc: 'Экстремальная жара: очень низкая активность' };
+    if (temp < -20) return { score: 0.1, desc: 'Экстремальный холод' };
+    if (temp < -10) return { score: 0.3, desc: 'Сильный мороз' };
+    if (temp < 0) return { score: 0.5, desc: 'Мороз' };
+    if (temp < 5) return { score: 0.7, desc: 'Прохладно' };
+    if (temp < 15) return { score: 1.0, desc: 'Идеальная температура' };
+    if (temp < 22) return { score: 0.8, desc: 'Тепло' };
+    if (temp < 28) return { score: 0.5, desc: 'Жарко' };
+    return { score: 0.2, desc: 'Экстремальная жара' };
   };
   
   // ОЦЕНКА ДАВЛЕНИЯ
   const getPressureScore = (): { score: number, desc: string } => {
     const absPressure = currentPressure;
-    // Абсолютное давление
     let pressureScore = 0.5;
+    
     if (absPressure >= 1013 && absPressure <= 1020) pressureScore = 1.0;
     else if (absPressure >= 1005 && absPressure < 1013) pressureScore = 0.8;
     else if (absPressure > 1020 && absPressure <= 1030) pressureScore = 0.7;
     else if (absPressure < 1005) pressureScore = 0.4;
     else if (absPressure > 1030) pressureScore = 0.3;
     
-    // Изменение давления
-    if (Math.abs(pressureChange) < 1) pressureScore *= 1.1; // Стабильное - хорошо
-    else if (pressureChange > 0 && pressureChange < 3) pressureScore *= 1.2; // Медленный рост - отлично
-    else if (pressureChange > 3) pressureScore *= 0.7; // Быстрый рост - плохо
-    else if (pressureChange < -3) pressureScore *= 0.5; // Быстрое падение - очень плохо
+    if (Math.abs(pressureChange) < 1) pressureScore *= 1.1;
+    else if (pressureChange > 0 && pressureChange < 3) pressureScore *= 1.2;
+    else if (pressureChange > 3) pressureScore *= 0.7;
+    else if (pressureChange < -3) pressureScore *= 0.5;
     
     let desc = '';
-    if (pressureChange > 3) desc = 'Давление резко растёт - рыба дезориентирована';
-    else if (pressureChange > 0) desc = 'Давление растёт - хороший признак';
-    else if (pressureChange < -3) desc = 'Давление резко падает - рыба перестаёт клевать';
-    else if (pressureChange < 0) desc = 'Давление падает - активность снижается';
-    else desc = 'Давление стабильное - оптимальные условия';
+    if (pressureChange > 3) desc = 'Давление резко растёт';
+    else if (pressureChange > 0) desc = 'Давление растёт';
+    else if (pressureChange < -3) desc = 'Давление резко падает';
+    else if (pressureChange < 0) desc = 'Давление падает';
+    else desc = 'Давление стабильное';
     
     return { score: Math.min(pressureScore, 1.0), desc };
   };
   
   // ОЦЕНКА ВЕТРА
   const getWindScore = (): { score: number, desc: string } => {
-    if (wind < 1) return { score: 0.6, desc: 'Штиль: рыба осторожничает' };
-    if (wind < 3) return { score: 1.0, desc: 'Лёгкий ветерок: идеально, вода насыщается кислородом' };
-    if (wind < 6) return { score: 0.8, desc: 'Умеренный ветер: хорошие условия' };
-    if (wind < 10) return { score: 0.5, desc: 'Сильный ветер: сложные условия' };
-    return { score: 0.2, desc: 'Шторм: рыбалка практически невозможна' };
+    if (wind < 1) return { score: 0.6, desc: 'Штиль' };
+    if (wind < 3) return { score: 1.0, desc: 'Лёгкий ветер' };
+    if (wind < 6) return { score: 0.8, desc: 'Умеренный ветер' };
+    if (wind < 10) return { score: 0.5, desc: 'Сильный ветер' };
+    return { score: 0.2, desc: 'Шторм' };
   };
   
   // ОЦЕНКА ОСАДКОВ
   const getPrecipitationScore = (): { score: number, desc: string } => {
-    if (precipitation === 0) return { score: 0.9, desc: 'Без осадков: стабильные условия' };
-    if (precipitation < 2) return { score: 1.0, desc: 'Лёгкие осадки: часто усиливают клёв' };
-    if (precipitation < 5) return { score: 0.7, desc: 'Умеренные осадки: условия средние' };
-    if (precipitation < 10) return { score: 0.4, desc: 'Сильные осадки: активность низкая' };
-    return { score: 0.1, desc: 'Ливень: очень плохие условия' };
+    if (precipitation === 0) return { score: 0.9, desc: 'Без осадков' };
+    if (precipitation < 2) return { score: 1.0, desc: 'Лёгкие осадки' };
+    if (precipitation < 5) return { score: 0.7, desc: 'Умеренные осадки' };
+    if (precipitation < 10) return { score: 0.4, desc: 'Сильные осадки' };
+    return { score: 0.1, desc: 'Ливень' };
   };
   
   // ВРЕМЯ СУТОК
   const getTimeOfDayScore = (): { score: number, desc: string } => {
-    if (hour >= 4 && hour < 8) return { score: 1.2, desc: 'Рассвет: лучший клёв!' };
-    if (hour >= 8 && hour < 12) return { score: 0.8, desc: 'Утро: хороший клёв' };
-    if (hour >= 12 && hour < 16) return { score: 0.6, desc: 'День: низкая активность' };
-    if (hour >= 16 && hour < 20) return { score: 1.0, desc: 'Вечер: отличный клёв' };
-    if (hour >= 20 && hour < 22) return { score: 0.7, desc: 'Поздний вечер: средний клёв' };
-    return { score: 0.3, desc: 'Ночь: низкая активность (кроме ночных видов)' };
+    if (hour >= 4 && hour < 8) return { score: 1.2, desc: 'Рассвет' };
+    if (hour >= 8 && hour < 12) return { score: 0.8, desc: 'Утро' };
+    if (hour >= 12 && hour < 16) return { score: 0.6, desc: 'День' };
+    if (hour >= 16 && hour < 20) return { score: 1.0, desc: 'Вечер' };
+    if (hour >= 20 && hour < 22) return { score: 0.7, desc: 'Поздний вечер' };
+    return { score: 0.3, desc: 'Ночь' };
   };
   
   // РАСЧЁТ БАЛЛОВ
@@ -230,7 +213,7 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
   const finalScore = Math.min(baseScore * season.factor, 1.0);
   const biteProbability = Math.round(finalScore * 100);
   
-  // ОПРЕДЕЛЕНИЕ РЕЙТИНГА
+  // РЕЙТИНГ
   let rating: 'poor' | 'fair' | 'good' | 'excellent';
   let mood = '';
   
@@ -248,49 +231,29 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
     mood = '😴 Слабый клёв, рыба пассивна';
   }
   
-  // СОВЕТЫ ПО СНАСТЯМ И ПРИМАНКАМ
+  // СОВЕТЫ
   const getBaitAdvice = () => {
     const baits = [];
-    
-    // По температуре
-    if (temp < 5) {
-      baits.push('Мормышка с мотылём', 'Опарыш', 'Мотыль', 'Черви');
-    } else if (temp < 15) {
-      baits.push('Черви', 'Опарыш', 'Кукуруза', 'Перловка', 'Бойлы');
-    } else {
-      baits.push('Кукуруза', 'Горох', 'Тесто', 'Бойлы', 'Растительные насадки');
-    }
-    
-    // По сезону
-    if (season.factor < 0.8) baits.push('Мелкие животные насадки');
-    if (season.factor > 1.1) baits.push('Крупные приманки', 'Блёсны');
-    
+    if (temp < 5) baits.push('Мормышка с мотылём', 'Опарыш', 'Мотыль');
+    else if (temp < 15) baits.push('Черви', 'Опарыш', 'Кукуруза');
+    else baits.push('Кукуруза', 'Горох', 'Тесто');
     return baits.slice(0, 3).join(', ');
   };
   
-  // ЛУЧШЕЕ ВРЕМЯ
   const getBestTime = () => {
     if (timeScore.score >= 1.0) return 'Сейчас идеальное время!';
     if (hour < 12) return 'Лучшее время: 16:00-20:00';
     return 'Лучшее время: завтра 4:00-8:00';
   };
   
-  // ОБЩИЕ СОВЕТЫ
   const getGeneralAdvice = () => {
     const advice = [];
-    
-    if (windScore.score < 0.5) advice.push('Ищите затишные места за камышом');
-    if (tempScore.score < 0.5) advice.push('Используйте тонкие снасти и мелкие приманки');
+    if (windScore.score < 0.5) advice.push('Ищите затишные места');
+    if (tempScore.score < 0.5) advice.push('Используйте тонкие снасти');
     if (pressureScore.score < 0.5) advice.push('Рыбачьте на глубине');
-    if (season.factor > 1.1) advice.push('Экспериментируйте с крупными приманками');
-    if (precipScore.score > 0.9) advice.push('После дождя попробуйте поверхностные приманки');
-    
-    return advice.length > 0 
-      ? advice.join('. ') 
-      : 'Стандартная тактика, экспериментируйте с приманками';
+    return advice.length > 0 ? advice.join('. ') : 'Стандартная тактика';
   };
-      const pressureChangeValue = parseFloat(pressureChange.toFixed(1));
-const isGoodValue = biteProbability >= 60;
+  
   return {
     biteProbability,
     mood,
@@ -298,9 +261,9 @@ const isGoodValue = biteProbability >= 60;
     bait: getBaitAdvice(),
     bestTime: getBestTime(),
     seasonFactor: season.factor,
+    pressureChange: parseFloat(pressureChange.toFixed(1)),
+    isGood: biteProbability >= 60,
     rating,
-     pressureChange: pressureChangeValue,
-       isGood: isGoodValue,
     factors: {
       temperature: tempScore,
       pressure: pressureScore,
