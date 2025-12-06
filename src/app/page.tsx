@@ -23,11 +23,6 @@ interface WeatherData{
     precipitation_sum:number[];
   }
 }
-const createClient = () =>
-  createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
 const omskRegionDistricts = {
   'Омск': { lat: 54.9924, lon: 73.3686 },
@@ -56,6 +51,12 @@ const weatherCodes: { [key: number]: string } = {
   80: "Небольшой ливень", 81: "Ливень", 82: "Сильный ливень", 85: "Небольшой снегопад",
   86: "Снегопад", 95: "Гроза", 96: "Гроза с градом", 99: "Сильная гроза с градом"
 };
+
+const createClient = () =>
+  createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
 const getClothingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => {
   const temp = isTomorrow ? weather.daily.temperature_2m_max[1] : weather.current_weather.temperature;
@@ -143,7 +144,7 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false) => 
   };
 };
 
-const MiltiDayForecast = ({days, weather, onDayClick} : {days:number, weather:WeatherData, onDayClick: (dayIndex:number)=> void}) => {
+const MiltiDayForecast = ({ days, weather, onDayClick }: { days: number, weather: WeatherData, onDayClick: (dayIndex: number) => void }) => {
   const getDayName = (dateString:string) => {
     const date = new Date(dateString + "T00:00:00")
     return date.toLocaleDateString('ru-RU', {weekday: "long"});
@@ -159,7 +160,7 @@ const MiltiDayForecast = ({days, weather, onDayClick} : {days:number, weather:We
       {weather.daily.time.slice(1, days + 1).map((date, index) => {
         const dataIndex = index + 1;
         return (
-          <div key={date} className="forecast-day" onClick={()=> onDayClick(dataIndex)}>
+          <div key={date} className="forecast-day" onClick={() => onDayClick(dataIndex)}>
             <div className="day-name">{getDayName(date)}</div>
             <div className="day-date">{formatDate(date)}</div>
             <div className="day-temp">
@@ -175,7 +176,7 @@ const MiltiDayForecast = ({days, weather, onDayClick} : {days:number, weather:We
   );
 };
 
-const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
+const TomorrowWeather = ({ weather, onDayClick }: { weather: WeatherData, onDayClick?: (dayIndex: number) => void }) => {
   const tomorrowIndex = 1;
   const fishingAdvice = getFishingAdvice(weather, true);
 
@@ -191,7 +192,7 @@ const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
   const tomorrowDate = getTomorrowDate();
 
   return (
-    <div className="main-content">
+    <div className="main-content" onClick={() => onDayClick && onDayClick(1)}>
       <div className="left-column">
         <div className="weather-header">
           <div className="weather-title">ПОГОДА</div>
@@ -256,7 +257,7 @@ const TomorrowWeather = ({ weather }: { weather: WeatherData }) => {
           </div>
         </div>
         <div className="fishing-advice-section">
-          <div className="section-title">🎣 Рыбалка в Омске</div>
+          <div className="section-title">🎣 Рыбалка</div>
           <div className={`fishing-mood ${fishingAdvice.isGood ? 'good' : 'normal'}`}>
             {fishingAdvice.mood}
           </div>
@@ -338,7 +339,7 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
           </div>
         </div>
         <div className="fishing-advice-section">
-          <div className="section-title">🎣 Шепот рыбака</div>
+          <div className="section-title">🎣 Рыбалка</div>
           <div className={`fishing-mood ${fishingAdvice.isGood ? 'good' : 'normal'}`}>
             {fishingAdvice.mood}
           </div>
@@ -362,13 +363,28 @@ export default function Home() {
   const [forecastPeriod, setForecastPeriod] = useState('today');
   const [currentTime, setCurrentTime] = useState<string>('');
   const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [email, setEmail] = useState('')
-const [password, setPassword] = useState('')
-const [confirmPassword, setConfirmPassword] = useState('')
-const [loading, setLoading] = useState(false)
-const [authError, setAuthError] = useState('')
-const [authSuccess, setAuthSuccess] = useState('')
-const [selectedDay, setSelectedDay] = useState<number | null>(null)
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  
+  // Auth states
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [authSuccess, setAuthSuccess] = useState('');
+  const [user, setUser] = useState<any>(null);
+  
+  const supabase = createClient();
+
+  // Check auth state
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkUser();
+  }, []);
 
   const updateTime = () => {
     setCurrentTime(new Date().toLocaleTimeString('ru-RU', { 
@@ -377,44 +393,6 @@ const [selectedDay, setSelectedDay] = useState<number | null>(null)
       minute: '2-digit'
     }));
   };
-  const supabase = createClient()
-
-const handleAuth = async (isLogin: boolean) => {
-  setLoading(true)
-  setAuthError('')
-  setAuthSuccess('')
-
-  // Проверка пароля для регистрации
-  if (!isLogin && password !== confirmPassword) {
-    setAuthError('Пароли не совпадают')
-    setLoading(false)
-    return
-  }
-
-  try {
-    if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) throw error
-      setIsAuthModalOpen(false)
-      setAuthSuccess('Успешный вход!')
-    } else {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      })
-      if (error) throw error
-      setAuthSuccess('Проверьте email для подтверждения регистрации!')
-      setActiveTab('login') 
-    }
-  } catch (error: any) {
-    setAuthError(error.message)
-  } finally {
-    setLoading(false)
-  }
-}
 
   const getWeather = async () => {
     try {
@@ -427,7 +405,67 @@ const handleAuth = async (isLogin: boolean) => {
       console.log("error");
     }
   };
-  
+
+  const handleAuth = async (isLogin: boolean) => {
+    setLoading(true);
+    setAuthError('');
+    setAuthSuccess('');
+
+    if (!isLogin && password !== confirmPassword) {
+      setAuthError('Пароли не совпадают');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      if (isLogin) {
+        // Login
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        setIsAuthModalOpen(false);
+        setAuthSuccess('Успешный вход!');
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
+      } else {
+        // Register
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        
+        if (authError) throw authError;
+
+        // Create profile with username
+        if (authData.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: authData.user.id,
+              email: email,
+              username: username,
+              updated_at: new Date().toISOString(),
+            });
+
+          if (profileError) throw profileError;
+        }
+
+        setAuthSuccess('Проверьте email для подтверждения регистрации!');
+        setActiveTab('login');
+      }
+    } catch (error: any) {
+      setAuthError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
 
   useEffect(() => {
     getWeather();
@@ -451,11 +489,35 @@ const handleAuth = async (isLogin: boolean) => {
   };
 
   const currentDate = getCurrentDate();
-  <MiltiDayForecast 
-  days={6} 
-  weather={weather} 
-  onDayClick={setSelectedDay}
-/>
+  const toggleFavoriteDistrict = async (districtName: string) => {
+  if (!user) return;
+  
+  try {
+    // Получаем текущие избранные
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('favorite_districts')
+      .eq('id', user.id)
+      .single();
+    
+    const currentFavorites = profile?.favorite_districts || [];
+    const isFavorite = currentFavorites.includes(districtName);
+    
+    // Обновляем массив
+const newFavorites = isFavorite
+  ? currentFavorites.filter((f: string) => f !== districtName)  // ← добавь : string
+  : [...currentFavorites, districtName];
+    
+    // Сохраняем в Supabase
+    await supabase
+      .from('profiles')
+      .update({ favorite_districts: newFavorites })
+      .eq('id', user.id);
+    
+  } catch (error) {
+    console.error('Ошибка сохранения избранного:', error);
+  }
+};
 
   return (
     <div className="container">
@@ -465,15 +527,24 @@ const handleAuth = async (isLogin: boolean) => {
           <div className="logo-sub">SALE</div>
         </div>
         <div className="auth-section">
+          {user ? (
+            <div className="user-section">
+              <span className="username">
+                👤 {user.user_metadata?.username || user.email?.split('@')[0] || 'Пользователь'}
+              </span>
+              <button className="logout-btn" onClick={handleLogout}>
+                Выйти
+              </button>
+            </div>
+          ) : (
+            <button className="login-btn" onClick={() => setIsAuthModalOpen(true)}>
+              👤 Войти
+            </button>
+          )}
         </div>
         <div className="time-section">
           <div className="current-time">{currentTime}</div>
         </div>
-        <div className="auth-section">
-                                <button className="login-btn" onClick={() => setIsAuthModalOpen(true)}>
-            👤 Войти
-          </button>
-          </div>
       </div>
 
       <div className="forecast-buttons">
@@ -501,127 +572,136 @@ const handleAuth = async (isLogin: boolean) => {
         >
           НА 6 ДНЕЙ
         </button>
-         <Link href="/districts" className="districts-btn">
-  🗺️ Районы
+                <Link href="/favorites" className="nav-button">
+  ⭐ Избранное
 </Link>
+        <Link href="/districts" className="districts-btn">
+          🗺️ Районы
+        </Link>
       </div>
 
-
-    {isAuthModalOpen && (
-  <div className="modal-overlay">
-    <div className="auth-modal">
-      <div className="modal-header">
-        <h2>Вход в аккаунт</h2>
-        <button className="close-btn" onClick={() => setIsAuthModalOpen(false)}>×</button>
-      </div>
-      
-      <div className="auth-tabs">
-        <button 
-          className={activeTab === 'login' ? 'tab-active' : ''}
-          onClick={() => setActiveTab('login')}
-        >
-          Вход
-        </button>
-        <button 
-          className={activeTab === 'register' ? 'tab-active' : ''}
-          onClick={() => setActiveTab('register')}
-        >
-          Регистрация
-        </button>
-      </div>
-      
-      {activeTab === 'login' ? (
-        <div className="auth-form">
-          <input 
-            type="email" 
-            placeholder="Email" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input 
-            type="password" 
-            placeholder="Пароль" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {authError && <div className="auth-error">{authError}</div>}
-          {authSuccess && <div className="auth-success">{authSuccess}</div>}
-          <button 
-            className="submit-btn" 
-            onClick={() => handleAuth(true)}
-            disabled={loading}
-          >
-            {loading ? 'Загрузка...' : 'Войти'}
-          </button>
-        </div>
-      ) : (
-        <div className="auth-form">
-          <input 
-            type="email" 
-            placeholder="Email" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input 
-            type="password" 
-            placeholder="Пароль" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <input 
-            type="password" 
-            placeholder="Повторите пароль" 
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-          />
-          {authError && <div className="auth-error">{authError}</div>}
-          {authSuccess && <div className="auth-success">{authSuccess}</div>}
-          <button 
-            className="submit-btn" 
-            onClick={() => handleAuth(false)}
-            disabled={loading}
-          >
-            {loading ? 'Загрузка...' : 'Зарегистрироваться'}
-          </button>
+      {isAuthModalOpen && (
+        <div className="modal-overlay">
+          <div className="auth-modal">
+            <div className="modal-header">
+              <h2>Вход в аккаунт</h2>
+              <button className="close-btn" onClick={() => setIsAuthModalOpen(false)}>×</button>
+            </div>
+            
+            <div className="auth-tabs">
+              <button 
+                className={activeTab === 'login' ? 'tab-active' : ''}
+                onClick={() => setActiveTab('login')}
+              >
+                Вход
+              </button>
+              <button 
+                className={activeTab === 'register' ? 'tab-active' : ''}
+                onClick={() => setActiveTab('register')}
+              >
+                Регистрация
+              </button>
+            </div>
+            
+            {activeTab === 'login' ? (
+              <div className="auth-form">
+                <input 
+                  type="email" 
+                  placeholder="Email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <input 
+                  type="password" 
+                  placeholder="Пароль" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                {authError && <div className="auth-error">{authError}</div>}
+                {authSuccess && <div className="auth-success">{authSuccess}</div>}
+                <button 
+                  className="submit-btn" 
+                  onClick={() => handleAuth(true)}
+                  disabled={loading}
+                >
+                  {loading ? 'Загрузка...' : 'Войти'}
+                </button>
+              </div>
+            ) : (
+              <div className="auth-form">
+                <input 
+                  type="email" 
+                  placeholder="Email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <input 
+                  type="text" 
+                  placeholder="Имя пользователя" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                <input 
+                  type="password" 
+                  placeholder="Пароль" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <input 
+                  type="password" 
+                  placeholder="Повторите пароль" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                {authError && <div className="auth-error">{authError}</div>}
+                {authSuccess && <div className="auth-success">{authSuccess}</div>}
+                <button 
+                  className="submit-btn" 
+                  onClick={() => handleAuth(false)}
+                  disabled={loading}
+                >
+                  {loading ? 'Загрузка...' : 'Зарегистрироваться'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
-    </div>
-  </div>
-)}
-{selectedDay !== null && (
-  <div className="modal-overlay">
-    <div className="forecast-modal">
-      <div className="modal-header">
-        <h2>Прогноз на {new Date(weather.daily.time[selectedDay]).toLocaleDateString('ru-RU')}</h2>
-        <button className="close-btn" onClick={() => setSelectedDay(null)}>×</button>
-      </div>
-      
-      <div className="forecast-details">
-        <div className="detail-item">
-          <span>Макс. температура:</span>
-          <span>{Math.round(weather.daily.temperature_2m_max[selectedDay])}°C</span>
+
+      {selectedDay !== null && weather && (
+        <div className="modal-overlay">
+          <div className="forecast-modal">
+            <div className="modal-header">
+              <h2>Прогноз на {new Date(weather.daily.time[selectedDay]).toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
+              <button className="close-btn" onClick={() => setSelectedDay(null)}>×</button>
+            </div>
+            
+            <div className="forecast-details">
+              <div className="detail-item">
+                <span>Макс. температура:</span>
+                <span>{Math.round(weather.daily.temperature_2m_max[selectedDay])}°C</span>
+              </div>
+              <div className="detail-item">
+                <span>Мин. температура:</span>
+                <span>{Math.round(weather.daily.temperature_2m_min[selectedDay])}°C</span>
+              </div>
+              <div className="detail-item">
+                <span>Осадки:</span>
+                <span>{weather.daily.precipitation_sum[selectedDay].toFixed(1)} мм</span>
+              </div>
+              <div className="detail-item">
+                <span>Погода:</span>
+                <span>{weatherCodes[weather.daily.weathercode[selectedDay]]}</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="detail-item">
-          <span>Мин. температура:</span>
-          <span>{Math.round(weather.daily.temperature_2m_min[selectedDay])}°C</span>
-        </div>
-        <div className="detail-item">
-          <span>Осадки:</span>
-          <span>{weather.daily.precipitation_sum[selectedDay]} мм</span>
-        </div>
-        <div className="detail-item">
-          <span>Погода:</span>
-          <span>{weatherCodes[weather.daily.weathercode[selectedDay]]}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       {forecastPeriod === 'today' && <CurrentWeather weather={weather} currentDate={currentDate} />}
-      {forecastPeriod === 'tomorrow' && <TomorrowWeather weather={weather} />}
-      {forecastPeriod === '3days' && <MiltiDayForecast days={3} weather={weather} onDayClick={setSelectedDay}/>}
-      {forecastPeriod === '6days' && <MiltiDayForecast days={6} weather={weather}  onDayClick={setSelectedDay}/>}
+      {forecastPeriod === 'tomorrow' && <TomorrowWeather weather={weather} onDayClick={setSelectedDay} />}
+      {forecastPeriod === '3days' && <MiltiDayForecast days={3} weather={weather} onDayClick={setSelectedDay} />}
+      {forecastPeriod === '6days' && <MiltiDayForecast days={6} weather={weather} onDayClick={setSelectedDay} />}
     </div>
   );
 }
