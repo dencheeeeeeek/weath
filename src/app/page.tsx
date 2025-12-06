@@ -125,7 +125,7 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
     if (month >= 5 && month <= 7) {
       return { factor: 0.9, desc: 'Летний сезон' };
     }
-    return { factor: 1.1, desc: 'Осенний сесон' };
+    return { factor: 1.1, desc: 'Осенний сезон' };
   };
   
   // ОЦЕНКА ТЕМПЕРАТУРЫ
@@ -696,6 +696,7 @@ const handleAuth = async (isLogin: boolean) => {
     setEmail('');
     setUsername('');
     setPassword('');
+    setConfirmPassword('');
   };
 
   useEffect(() => {
@@ -731,6 +732,25 @@ const handleAuth = async (isLogin: boolean) => {
 
         <div className="time-section">
           <div className="current-time">{currentTime}</div>
+        </div>
+
+        {/* Кнопка авторизации в правом верхнем углу */}
+        <div className="auth-section">
+          {user ? (
+            <div className="user-info">
+              <span className="username">👤 {user.username}</span>
+              <button className="logout-btn" onClick={handleLogout}>
+                Выйти
+              </button>
+            </div>
+          ) : (
+            <button 
+              className="login-btn" 
+              onClick={() => setIsAuthModalOpen(true)}
+            >
+              Войти
+            </button>
+          )}
         </div>
       </div>
 

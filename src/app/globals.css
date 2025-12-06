@@ -1113,3 +1113,27 @@ a.districts-btn {
   margin-bottom: 5px;
   color: rgba(255,255,255,0.8);
 }
+.top-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  position: relative;
+  border-bottom: 1px solid #eee;
+}
+
+.logo-section {
+  flex: 1;
+}
+
+.time-section {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.auth-section {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
