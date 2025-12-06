@@ -1041,3 +1041,75 @@ a.districts-btn {
   color: rgba(255,255,255,0.7);
   margin-top: 10px;
 }
+/* Стили для рейтинга */
+.fishing-rating {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.fishing-rating.excellent {
+  border-left: 4px solid #4ade80;
+}
+
+.fishing-rating.good {
+  border-left: 4px solid #fbbf24;
+}
+
+.fishing-rating.fair {
+  border-left: 4px solid #fb923c;
+}
+
+.fishing-rating.poor {
+  border-left: 4px solid #f87171;
+}
+
+.rating-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.rating-title {
+  font-weight: 600;
+}
+
+.rating-value {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.rating-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.rating-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  transition: width 0.5s ease;
+}
+
+.fishing-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.fishing-factor {
+  background: rgba(255,255,255,0.05);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.fishing-factor span:first-child {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 5px;
+  color: rgba(255,255,255,0.8);
+}
