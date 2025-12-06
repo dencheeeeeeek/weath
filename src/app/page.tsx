@@ -528,7 +528,6 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
 };
 
 export default function Home() {
-  const a=1
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [forecastPeriod, setForecastPeriod] = useState('today');
