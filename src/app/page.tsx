@@ -675,7 +675,7 @@ const handleAuth = async (isLogin: boolean) => {
           username: username || newUser.email?.split('@')[0] || 'Пользователь'
         });
         
-        setAuthSuccess('Регистрация успешна!');
+        setAuthSuccess('Регистрация успешна! Проверьте указанный E-mail для подтверждения!');
         setTimeout(() => {
           setIsAuthModalOpen(false);
         }, 2000);
