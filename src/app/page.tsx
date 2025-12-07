@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from 'next/link';
 import { createClient } from '@/app/lib/supabase/client';
+import dynamic from 'next/dynamic';
 
 interface WeatherData{
   current_weather:{
@@ -23,7 +24,10 @@ interface WeatherData{
     precipitation_sum:number[];
   }
 }
-
+const Snowfall = dynamic(
+  () => import('react-snowfall'),
+  { ssr: false }
+);
 const omskRegionDistricts = {
   'Омск': { lat: 54.9924, lon: 73.3686 },
   'Тара': { lat: 56.7306, lon: 74.3641 },
@@ -729,9 +733,15 @@ const handleAuth = async (isLogin: boolean) => {
           <div className="logo-main">WINTER</div>
           <div className="logo-sub">SALE</div>
         </div>
-
         <div className="time-section">
           <div className="current-time">{currentTime}</div>
+          <Snowfall
+          color="#FFFFF"
+          speed={[0.5,2]}
+          radius={[2,7]}
+          snowflakeCount={150}
+          style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}
+          />
         </div>
 
         <div className="auth-section">
