@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 
 interface DistrictWeather {
   name: string;
@@ -10,6 +11,10 @@ interface DistrictWeather {
   time: string;
 }
 
+const Snowfall = dynamic(
+  () => import('react-snowfall'),
+  { ssr: false }
+);
 const omskRegionDistricts = {
   'Омск': { lat: 54.9924, lon: 73.3686 },
   'Тара': { lat: 56.7306, lon: 74.3641 },
@@ -136,6 +141,13 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
 
   return (
     <div className="container">
+                   <Snowfall
+          color="#FFFFFF"
+          speed={[0.5,2]}
+          radius={[2,7]}
+          snowflakeCount={150}
+          style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}
+          />
       <div className="top-section">
         <div className="logo-section">
           <div className="logo-main">WINTER</div>

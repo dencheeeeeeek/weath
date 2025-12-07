@@ -1,8 +1,12 @@
 'use client';
 import { useEffect, useState } from "react";
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 
-export const dynamic = 'force-dynamic';
+const Snowfall = dynamic(
+  () => import('react-snowfall'),
+  { ssr: false }
+);
 export const revalidate = 0;
 
 export default function FavoritesPage() {
@@ -22,6 +26,13 @@ export default function FavoritesPage() {
 
   return (
     <div className="container">
+             <Snowfall
+          color="#FFFFFF"
+          speed={[0.5,2]}
+          radius={[2,7]}
+          snowflakeCount={150}
+          style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}
+          />
       <div className="top-section">
         <div className="logo-section">
           <div className="logo-main">WINTER</div>
