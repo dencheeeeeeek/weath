@@ -736,7 +736,7 @@ const handleAuth = async (isLogin: boolean) => {
         <div className="time-section">
           <div className="current-time">{currentTime}</div>
           <Snowfall
-          color="#FFFFF"
+          color="#FFFFFF"
           speed={[0.5,2]}
           radius={[2,7]}
           snowflakeCount={150}
