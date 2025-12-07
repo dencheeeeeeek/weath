@@ -1159,3 +1159,88 @@ body {
     margin: 0 auto;
   }
 }
+/* Мобильный фиксированный виджет температуры */
+.mobile-temperature-widget {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  border: 2px solid white;
+  backdrop-filter: blur(10px);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mobile-temperature-widget:hover {
+  transform: scale(1.1);
+}
+
+.mobile-temp-value {
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  line-height: 1;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.mobile-weather-icon {
+  font-size: 20px;
+  margin-top: 2px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Расширенный виджет при нажатии */
+.mobile-widget-expanded {
+  width: 120px;
+  height: auto;
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.mobile-widget-details {
+  display: none;
+  font-size: 12px;
+  color: white;
+  text-align: center;
+  margin-top: 8px;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+}
+
+.mobile-widget-expanded .mobile-widget-details {
+  display: block;
+}
+
+/* Только для мобильных */
+@media (max-width: 768px) {
+  .mobile-temperature-widget {
+    display: flex;
+  }
+  
+  /* Прячем на очень маленьких экранах в горизонтальной ориентации */
+  @media (max-height: 400px) {
+    .mobile-temperature-widget {
+      bottom: 10px;
+      right: 10px;
+      width: 50px;
+      height: 50px;
+    }
+  }
+}
+
+/* Оптимизация отступов для мобильных */
+@media (max-width: 768px) {
+  .container {
+    padding-bottom: 90px; /* Чтобы виджет не перекрывал контент */
+  }
+}

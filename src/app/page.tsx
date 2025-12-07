@@ -529,6 +529,46 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
     </div>
   );
 };
+// Мобильный виджет температуры
+const MobileTemperatureWidget = ({ weather }: { weather: WeatherData | null }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!weather) return null;
+
+  const getWeatherIcon = (weatherCode: number) => {
+    if ([0, 1].includes(weatherCode)) return '☀️';
+    if ([2, 3].includes(weatherCode)) return '⛅';
+    if ([45, 48].includes(weatherCode)) return '🌫️';
+    if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)) return '🌧️';
+    if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) return '❄️';
+    if ([95, 96, 99].includes(weatherCode)) return '⛈️';
+    return '🌤️';
+  };
+
+  return (
+    <div 
+      className={`mobile-temperature-widget ${isExpanded ? 'mobile-widget-expanded' : ''}`}
+      onClick={() => setIsExpanded(!isExpanded)}
+      onTouchStart={() => setIsExpanded(true)}
+      onTouchEnd={() => setTimeout(() => setIsExpanded(false), 3000)}
+    >
+      <div className="mobile-temp-value">
+        {Math.round(weather.current_weather.temperature)}°C
+      </div>
+      <div className="mobile-weather-icon">
+        {getWeatherIcon(weather.current_weather.weathercode)}
+      </div>
+      
+      {isExpanded && (
+        <div className="mobile-widget-details">
+          <div>{weatherCodes[weather.current_weather.weathercode]}</div>
+          <div>Ветер: {weather.current_weather.windspeed.toFixed(1)} м/с</div>
+          <div>Осадки: {weather.hourly.precipitation[0].toFixed(1)} мм</div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -739,7 +779,7 @@ const handleAuth = async (isLogin: boolean) => {
           color="#FFFFFF"
           speed={[0.5,2]}
           radius={[2,7]}
-          snowflakeCount={150}
+          snowflakeCount={100}
           style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}
           />
         </div>
@@ -918,6 +958,7 @@ const handleAuth = async (isLogin: boolean) => {
       {forecastPeriod === 'tomorrow' && <TomorrowWeather weather={weather} onDayClick={setSelectedDay} />}
       {forecastPeriod === '3days' && <MultiDayForecast days={3} weather={weather} onDayClick={setSelectedDay} />}
       {forecastPeriod === '6days' && <MultiDayForecast days={6} weather={weather} onDayClick={setSelectedDay} />}
+       <MobileTemperatureWidget weather={weather} />
     </div>
   );
 }

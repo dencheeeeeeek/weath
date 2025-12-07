@@ -145,7 +145,7 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
           color="#FFFFFF"
           speed={[0.5,2]}
           radius={[2,7]}
-          snowflakeCount={150}
+          snowflakeCount={100}
           style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}
           />
       <div className="top-section">
