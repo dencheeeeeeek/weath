@@ -393,7 +393,8 @@ const TomorrowWeather=({ weather, onDayClick }: { weather: WeatherData, onDayCli
             <span>{convertPressure(weather.hourly.pressure_msl[24])} мм рт. ст.</span>
           </div>
         <div className="detail-item">
-          <span>{weather.hourly.relativehumidity_2m[24]}</span>
+          <span>Влажность:</span>
+          <span>{Math.round(weather.hourly.relativehumidity_2m[24])}%</span>
         </div>
           <div className="detail-item">
             <span>Ветер:</span>
@@ -412,7 +413,7 @@ const TomorrowWeather=({ weather, onDayClick }: { weather: WeatherData, onDayCli
           <span>{Math.round(tomorrowHumidity)}%</span>
           </div>
           <div className="detail-item">
-            <span>УФИ(Ультрафиолетовый индекс солнца)</span>
+            <span>УФИ</span>
             <span>{Math.round(weather.hourly.uv_index[1])}</span>
             <span>{getUvlLevel(weather.hourly.uv_index[1])}</span>
           </div>
@@ -480,6 +481,12 @@ const TomorrowWeather=({ weather, onDayClick }: { weather: WeatherData, onDayCli
       <span>🌪️ Ветер:</span>
       <span>{fishingAdvice.factors.wind.desc}</span>
     </div>
+      <div className="fishing-factor">
+    <span>💧 Влажность:</span>
+    <span>
+      {fishingAdvice.humidity}% - {fishingAdvice.factors.humidity.desc}
+    </span>
+  </div>
     <div className="fishing-factor">
       <span>📅 Сезон:</span>
       <span>{fishingAdvice.factors.season.desc}</span>
@@ -540,7 +547,7 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
             <span>{weather.current_weather.windspeed.toFixed(1)} м/с</span>
           </div>
           <div className="detail-item">
-            <span>УФИ(Ультрафиолетовый индекс солнца)</span>
+            <span>УФИ</span>
             <span>{Math.round(weather.hourly.uv_index[0])}</span>
             <span>{getUvlLevel(weather.hourly.uv_index[0])}</span>
           </div>
