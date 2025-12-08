@@ -14,6 +14,7 @@ interface WeatherData{
     relativehumidity_2m: number[];
     pressure_msl: number[];
     precipitation:number[];
+    uv_index:number[];
     time:string[];
   };
   daily:{
@@ -23,6 +24,15 @@ interface WeatherData{
     weathercode:number[];
     precipitation_sum:number[];
   }
+}
+
+
+const getUvlLevel=(uvIndex: number):string=>{
+  if(uvIndex<=2) return 'Низкий'
+  if(uvIndex<=5) return 'Умеренный'
+  if(uvIndex<=7) return 'Высокий'
+  if(uvIndex<=10) return 'Очень высокий'
+  return 'Экстримальный'
 }
 const Snowfall = dynamic(
   () => import('react-snowfall'),
@@ -94,6 +104,7 @@ interface FishingForecast {
   pressureChange: number;
   isGood: boolean;
   rating: 'poor' | 'fair' | 'good' | 'excellent';
+  humidity:number;
   factors: {
     temperature: { score: number, desc: string };
     pressure: { score: number, desc: string };
@@ -101,6 +112,7 @@ interface FishingForecast {
     season: { score: number, desc: string };
     precipitation: { score: number, desc: string };
     timeOfDay: { score: number, desc: string };
+    humidity:{score:number, desc:string};
   };
 }
 
@@ -113,6 +125,9 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
   const tomorrowPressure = weather.hourly.pressure_msl[24];
   const pressureChange = tomorrowPressure - currentPressure;
   const precipitation = isTomorrow ? weather.daily.precipitation_sum[1] : weather.hourly.precipitation[0];
+  const currentHumidity=weather.hourly.relativehumidity_2m[0]
+  const tomorrowHumidity=weather.hourly.relativehumidity_2m[24]
+  const humidity=isTomorrow? tomorrowHumidity:currentHumidity
   
   const now = new Date();
   const month = now.getMonth();
@@ -131,6 +146,32 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
     }
     return { factor: 1.1, desc: 'Осенний сезон' };
   };
+
+  // Добавь эту функцию в getFishingAdvice или отдельно:
+const getHumidityScore = (humidity: number): { score: number, desc: string } => {
+  // Идеальная влажность для рыбалки: 60-75%
+  if (humidity >= 60 && humidity <= 75) {
+    return { score: 1.0, desc: 'Идеальная влажность' };
+  }
+  
+  if (humidity >= 50 && humidity <= 85) {
+    return { score: 0.8, desc: 'Хорошая влажность' };
+  }
+  
+  if (humidity >= 40 && humidity <= 90) {
+    return { score: 0.6, desc: 'Нормальная влажность' };
+  }
+  
+  if (humidity < 30) {
+    return { score: 0.4, desc: 'Слишком сухо' };
+  }
+  
+  if (humidity > 90) {
+    return { score: 0.3, desc: 'Очень высокая влажность' };
+  }
+  
+  return { score: 0.5, desc: 'Средняя влажность' };
+};
   
   // ОЦЕНКА ТЕМПЕРАТУРЫ
   const getTemperatureScore = (): { score: number, desc: string } => {
@@ -143,7 +184,6 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
     if (temp < 28) return { score: 0.5, desc: 'Жарко' };
     return { score: 0.2, desc: 'Экстремальная жара' };
   };
-  
   // ОЦЕНКА ДАВЛЕНИЯ
   const getPressureScore = (): { score: number, desc: string } => {
     const absPressure = currentPressure;
@@ -197,7 +237,6 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
     if (hour >= 20 && hour < 22) return { score: 0.7, desc: 'Поздний вечер' };
     return { score: 0.3, desc: 'Ночь' };
   };
-  
   // РАСЧЁТ БАЛЛОВ
   const tempScore = getTemperatureScore();
   const pressureScore = getPressureScore();
@@ -205,13 +244,15 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
   const precipScore = getPrecipitationScore();
   const timeScore = getTimeOfDayScore();
   const season = getSeasonFactor();
-  
+  const humidityScore=getHumidityScore(humidity);
+
   const baseScore = (
     tempScore.score * 0.25 +
     pressureScore.score * 0.25 +
     windScore.score * 0.15 +
     precipScore.score * 0.15 +
-    timeScore.score * 0.2
+    timeScore.score * 0.2 +
+    humidityScore.score *0.15
   );
   
   const finalScore = Math.min(baseScore * season.factor, 1.0);
@@ -266,6 +307,7 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
     bestTime: getBestTime(),
     seasonFactor: season.factor,
     pressureChange: parseFloat(pressureChange.toFixed(1)),
+    humidity: Math.round(humidity),
     isGood: biteProbability >= 60,
     rating,
     factors: {
@@ -274,7 +316,8 @@ const getFishingAdvice = (weather: WeatherData, isTomorrow: boolean = false): Fi
       wind: windScore,
       season: { score: season.factor, desc: season.desc },
       precipitation: precipScore,
-      timeOfDay: timeScore
+      timeOfDay: timeScore,
+      humidity: humidityScore
     }
   };
 };
@@ -314,6 +357,7 @@ const MultiDayForecast = ({days, weather, onDayClick} : {days:number, weather:We
 const TomorrowWeather=({ weather, onDayClick }: { weather: WeatherData, onDayClick?: (dayIndex: number) => void }) => {
   const tomorrowIndex = 1;
   const fishingAdvice = getFishingAdvice(weather, true);
+  const tomorrowHumidity=weather.hourly.relativehumidity_2m[24]
 
   const getTomorrowDate = () => {
     const tomorrow = new Date();
@@ -348,6 +392,9 @@ const TomorrowWeather=({ weather, onDayClick }: { weather: WeatherData, onDayCli
             <span>Давление:</span>
             <span>{convertPressure(weather.hourly.pressure_msl[24])} мм рт. ст.</span>
           </div>
+        <div className="detail-item">
+          <span>{weather.hourly.relativehumidity_2m[24]}</span>
+        </div>
           <div className="detail-item">
             <span>Ветер:</span>
             <span>{weather.current_weather.windspeed.toFixed(1)} м/с</span>
@@ -359,6 +406,15 @@ const TomorrowWeather=({ weather, onDayClick }: { weather: WeatherData, onDayCli
           <div className="detail-item">
             <span>Мин. температура:</span>
             <span>{Math.round(weather.daily.temperature_2m_min[tomorrowIndex])}°C</span>
+          </div>
+          <div className="detail-item">
+          <span>Влажность</span>
+          <span>{Math.round(tomorrowHumidity)}%</span>
+          </div>
+          <div className="detail-item">
+            <span>УФИ(Ультрафиолетовый индекс солнца)</span>
+            <span>{Math.round(weather.hourly.uv_index[1])}</span>
+            <span>{getUvlLevel(weather.hourly.uv_index[1])}</span>
           </div>
 
           <div className="clothing-advice-section">
@@ -476,8 +532,17 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
             <span>{convertPressure(weather.hourly.pressure_msl[0])} мм. рт. ст.</span>
           </div>
           <div className="detail-item">
+            <span>Влажность:</span>
+            <span>{fishingAdvice.humidity}% - {fishingAdvice.factors.humidity.desc}</span>
+          </div>
+          <div className="detail-item">
             <span>Ветер:</span>
             <span>{weather.current_weather.windspeed.toFixed(1)} м/с</span>
+          </div>
+          <div className="detail-item">
+            <span>УФИ(Ультрафиолетовый индекс солнца)</span>
+            <span>{Math.round(weather.hourly.uv_index[0])}</span>
+            <span>{getUvlLevel(weather.hourly.uv_index[0])}</span>
           </div>
 
           <div className="clothing-advice-section">
@@ -655,7 +720,7 @@ useEffect(() => {
   const getWeather = async () => {
     try {
       const response = await fetch(
-        "https://api.open-meteo.com/v1/forecast?latitude=54.9924&longitude=73.3686&current_weather=true&hourly=relativehumidity_2m,pressure_msl,precipitation&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&forecast_days=7"
+        "https://api.open-meteo.com/v1/forecast?latitude=54.9924&longitude=73.3686&current_weather=true&hourly=relativehumidity_2m,pressure_msl,precipitation,uv_index&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,uv_index_max&timezone=auto&forecast_days=7"
       );
       const data = await response.json();
       setWeather(data);
@@ -948,6 +1013,10 @@ const handleAuth = async (isLogin: boolean) => {
               <div className="detail-item">
                 <span>Осадки:</span>
                 <span>{weather.daily.precipitation_sum[selectedDay].toFixed(1)} мм</span>
+              </div>
+              <div className="detail-item">
+                <span>Влажность:</span>
+                <span>{weather.hourly.relativehumidity_2m[0]}</span>
               </div>
               <div className="detail-item">
                 <span>Погода:</span>
