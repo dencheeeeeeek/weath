@@ -311,7 +311,7 @@ const MultiDayForecast = ({days, weather, onDayClick} : {days:number, weather:We
   );
 };
 
-const TomorrowWeather = ({ weather, onDayClick }: { weather: WeatherData, onDayClick?: (dayIndex: number) => void }) => {
+const TomorrowWeather=({ weather, onDayClick }: { weather: WeatherData, onDayClick?: (dayIndex: number) => void }) => {
   const tomorrowIndex = 1;
   const fishingAdvice = getFishingAdvice(weather, true);
 
@@ -346,7 +346,7 @@ const TomorrowWeather = ({ weather, onDayClick }: { weather: WeatherData, onDayC
           </div>
           <div className="detail-item">
             <span>Давление:</span>
-            <span>{Math.round(weather.hourly.pressure_msl[24])} гПа</span>
+            <span>{convertPressure(weather.hourly.pressure_msl[24])} мм рт. ст.</span>
           </div>
           <div className="detail-item">
             <span>Ветер:</span>
@@ -370,7 +370,7 @@ const TomorrowWeather = ({ weather, onDayClick }: { weather: WeatherData, onDayC
         </div>
 
         <div className="navigation-section">
-          <Link href="/garden" className="nav-button">
+          <Link href="/garden" className="nav-button gradient-text-btn">
             🌱 Календарь дачника
           </Link>
         </div>
@@ -473,7 +473,7 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
           </div>
           <div className="detail-item">
             <span>Давление:</span>
-            <span>{Math.round(weather.hourly.pressure_msl[0])} гПа</span>
+            <span>{convertPressure(weather.hourly.pressure_msl[0])} мм. рт. ст.</span>
           </div>
           <div className="detail-item">
             <span>Ветер:</span>
@@ -489,7 +489,7 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
         </div>
 
         <div className="navigation-section">
-          <Link href="/garden" className="nav-button">
+          <Link href="/garden" className="nav-button gradient-text-btn">
             🌱 Календарь дачника
           </Link>
         </div>
@@ -521,8 +521,8 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
             <div className="fishing-tip">🪝 {fishingAdvice.bait}</div>
           </div>
           <div className="fishing-pressure">
-  📊 Давление меняется на {fishingAdvice.pressureChange} гПа
-  {Math.abs(fishingAdvice.pressureChange) > 3 && " ⚠️"}
+  📊 Давление меняется на {convertPressure(fishingAdvice.pressureChange)} мм рт. ст.
+  {Math.abs(fishingAdvice.pressureChange * 0.750062) > 3 && " ⚠️"}
 </div>
         </div>
       </div>
@@ -568,6 +568,10 @@ const MobileTemperatureWidget = ({ weather }: { weather: WeatherData | null }) =
       )}
     </div>
   );
+};
+const convertPressure = (hPa: number): number => {
+  // 1 гПа = 0.750062 мм рт.ст.
+  return Math.round(hPa * 0.750062);
 };
 
 export default function Home() {

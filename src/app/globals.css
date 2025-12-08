@@ -1030,6 +1030,49 @@ body {
     grid-template-columns: 1fr;
     gap: 30px;
   }
+
+    
+  .top-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+  
+  .logo-section, .time-section, .auth-section {
+    text-align: center;
+    width: 100%;
+  }
+  
+  .logo-section {
+    order: 1;
+  }
+  
+  .time-section {
+    order: 2;
+  }
+  
+  .auth-section {
+    order: 3;
+  }
+   .login-btn, .logout-btn {
+    width: 200px;
+    margin: 0 auto;
+    display: block;
+  }
+  
+  .user-info {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  
+  .username {
+    text-align: center;
+    margin-bottom: 5px;
+  }
+}
   
   .top-section {
     flex-direction: column;
@@ -1044,8 +1087,11 @@ body {
   }
   
   .auth-section {
-    position: static;
+    display: flex;
+    justify-content: center;
+    width: 100%;
     margin-top: 15px;
+    order: 3;
   }
   
   .forecast-buttons {
@@ -1102,13 +1148,22 @@ body {
   .fishing-details {
     grid-template-columns: 1fr;
   }
-}
+
 
 @media (max-width: 480px) {
   .container {
     padding: 10px;
   }
   
+    .auth-section {
+    position: static;
+    margin-top: 10px;
+  }
+  
+  .login-btn, .logout-btn {
+    width: 100%;
+    max-width: 300px;
+  }
   .weather-details {
     padding: 20px;
   }
@@ -1243,4 +1298,13 @@ body {
   .container {
     padding-bottom: 90px; /* Чтобы виджет не перекрывал контент */
   }
+}
+.gradient-text-btn {
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  border: 2px solid;
+  border-image: linear-gradient(135deg, #667eea, #764ba2) 1;
 }

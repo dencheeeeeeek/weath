@@ -50,56 +50,75 @@ export default function DistrictsPage() {
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [currentTime, setCurrentTime] = useState<string>(''); // Новое состояние для текущего времени
 
-const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
-  const cacheKey = 'region_weather_cache';
-  const now = Date.now();
-  
-  // Проверяем кеш
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) {
-    const { data, timestamp } = JSON.parse(cached);
-    if (now - timestamp < CACHE_DURATION) {
-      setLastUpdate(new Date(timestamp).toLocaleTimeString('ru-RU'));
-      return data;
+  // Функция для обновления текущего времени
+  const updateCurrentTime = () => {
+    setCurrentTime(new Date().toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }));
+  };
+
+  const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
+    const cacheKey = 'region_weather_cache';
+    const now = Date.now();
+    
+    // Проверяем кеш
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const { data, timestamp } = JSON.parse(cached);
+      if (now - timestamp < CACHE_DURATION) {
+        // Обновляем время последнего обновления
+        setLastUpdate(new Date(timestamp).toLocaleTimeString('ru-RU', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }));
+        return data;
+      }
     }
-  }
-  
-  // Делаем отдельные запросы для каждого района (проще чем мульти-запрос)
-  const weatherData: DistrictWeather[] = [];
-  
-  for (const [district, coords] of Object.entries(omskRegionDistricts)) {
-    try {
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&timezone=auto`
-      );
-      
-      const data = await response.json();
-      
-      weatherData.push({
-        name: district,
-        temperature: data.current_weather.temperature,
-        weathercode: data.current_weather.weathercode,
-        windspeed: data.current_weather.windspeed,
-        time: data.current_weather.time
-      });
-      
-      // Небольшая задержка между запросами чтобы не превысить лимиты
-      await new Promise(resolve => setTimeout(resolve, 100));
-    } catch (error) {
-      console.error(`Ошибка загрузки для ${district}:`, error);
+    
+    // Делаем отдельные запросы для каждого района
+    const weatherData: DistrictWeather[] = [];
+    
+    for (const [district, coords] of Object.entries(omskRegionDistricts)) {
+      try {
+        const response = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true&timezone=auto`
+        );
+        
+        const data = await response.json();
+        
+        weatherData.push({
+          name: district,
+          temperature: data.current_weather.temperature,
+          weathercode: data.current_weather.weathercode,
+          windspeed: data.current_weather.windspeed,
+          time: data.current_weather.time
+        });
+        
+        // Небольшая задержка между запросами чтобы не превысить лимиты
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`Ошибка загрузки для ${district}:`, error);
+      }
     }
-  }
-  
-  // Сохраняем в кеш
-  localStorage.setItem(cacheKey, JSON.stringify({
-    data: weatherData,
-    timestamp: now
-  }));
-  
-  setLastUpdate(new Date(now).toLocaleTimeString('ru-RU'));
-  return weatherData;
-};
+    
+    // Сохраняем в кеш
+    localStorage.setItem(cacheKey, JSON.stringify({
+      data: weatherData,
+      timestamp: now
+    }));
+    
+    // Обновляем время последнего обновления
+    setLastUpdate(new Date(now).toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }));
+    
+    return weatherData;
+  };
 
   const toggleFavorite = (district: string) => {
     setFavorites(prev => 
@@ -115,9 +134,16 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
     const data = await getCachedRegionWeather();
     setDistrictWeather(data);
     setLoading(false);
+    
+    // Также обновляем текущее время при ручном обновлении
+    updateCurrentTime();
   };
 
   useEffect(() => {
+    // Запускаем таймер для обновления текущего времени
+    updateCurrentTime();
+    const timeInterval = setInterval(updateCurrentTime, 1000);
+    
     const loadData = async () => {
       const data = await getCachedRegionWeather();
       setDistrictWeather(data);
@@ -126,9 +152,13 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
     
     loadData();
     
-    // Обновляем каждые 30 минут
-    const interval = setInterval(loadData, 30 * 60 * 1000);
-    return () => clearInterval(interval);
+    // Обновляем погоду каждые 30 минут
+    const weatherInterval = setInterval(loadData, 30 * 60 * 1000);
+    
+    return () => {
+      clearInterval(timeInterval);
+      clearInterval(weatherInterval);
+    };
   }, []);
 
   if (loading) {
@@ -141,20 +171,29 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
 
   return (
     <div className="container">
-                   <Snowfall
-          color="#FFFFFF"
-          speed={[0.5,2]}
-          radius={[2,7]}
-          snowflakeCount={100}
-          style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}
-          />
+      <Snowfall
+        color="#FFFFFF"
+        speed={[0.5,2]}
+        radius={[2,7]}
+        snowflakeCount={100}
+        style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}
+      />
+      
       <div className="top-section">
         <div className="logo-section">
           <div className="logo-main">WINTER</div>
           <div className="logo-sub">SALE</div>
         </div>
         <div className="time-section">
-          <div className="current-time">{lastUpdate}</div>
+          {/* Показываем текущее время и время последнего обновления */}
+          <div className="current-time">
+            <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+              {currentTime}
+            </div>
+            <div style={{ fontSize: '14px', opacity: 0.8, marginTop: '5px' }}>
+              📅 Обновлено: {lastUpdate}
+            </div>
+          </div>
         </div>
         <div className="auth-section">
           <Link href="/" className="login-btn">
@@ -166,7 +205,7 @@ const getCachedRegionWeather = async (): Promise<DistrictWeather[]> => {
       <div className="districts-header">
         <h1>Погода по районам Омской области</h1>
         <button className="refresh-btn" onClick={refreshData}>
-          🔄 Обновить
+          🔄 Обновить ({lastUpdate})
         </button>
       </div>
 
