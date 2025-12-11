@@ -916,10 +916,10 @@ const handleAuth = async (isLogin: boolean) => {
         >
           НА 6 ДНЕЙ
         </button>
-        <Link href="/districts" className="districts-btn">
+        <Link href="/districts" className="blue-btn">
           🗺️ Районы
         </Link>
-        <Link href="/favorites" className="districts-btn">
+        <Link href="/favorites" className="blue-btn">
           ⭐ Избранное
         </Link>
       </div>
