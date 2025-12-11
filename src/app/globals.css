@@ -1276,95 +1276,180 @@ body {
 }
 .skating-banner {
   position: relative;
-  background: linear-gradient(rgba(0, 50, 100, 0.7), rgba(0, 80, 150, 0.7));
-  border-radius: 20px;
-  padding: 25px;
-  margin: 25px 0 35px 0;
+  background: linear-gradient(135deg, rgba(0, 70, 140, 0.9) 0%, rgba(0, 120, 200, 0.85) 100%);
+  border-radius: 0 0 25px 25px;
+  padding: 20px 30px;
+  margin: 0;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 100, 200, 0.2);
+  border-bottom: 4px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 40px rgba(0, 100, 200, 0.4);
+  z-index: 100;
 }
 
+/* Эффект при наведении */
 .skating-banner:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0, 100, 200, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 50px rgba(0, 100, 200, 0.5);
+  border-bottom: 4px solid rgba(255, 255, 255, 0.7);
 }
 
+/* Заблюренный фон */
 .banner-bg {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('/skating-bg.jpg'); 
+  background-image: url('/skating-bg.jpg');
   background-size: cover;
   background-position: center;
-  filter: blur(8px) brightness(0.7);
+  filter: blur(10px) brightness(0.6) saturate(1.2);
+  z-index: -1;
+  opacity: 0.9;
+}
+
+/* Градиент поверх фона */
+.skating-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(0, 70, 140, 0.7) 0%, rgba(0, 120, 200, 0.6) 100%);
   z-index: -1;
 }
 
+/* Контент баннера */
 .banner-content {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 25px;
   color: white;
   z-index: 1;
 }
 
+/* Иконка */
 .banner-icon {
-  font-size: 40px;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  font-size: 45px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+  animation: float 3s ease-in-out infinite;
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Текст */
 .banner-text {
   flex: 1;
 }
 
 .banner-text h3 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 5px;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  font-size: 26px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.5px;
 }
 
 .banner-text p {
-  font-size: 16px;
-  opacity: 0.9;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  font-size: 17px;
+  opacity: 0.95;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
 }
 
+/* Кнопка */
 .banner-btn {
-  background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
-  color: #1565c0;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  color: #0d47a1;
   border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-weight: bold;
-  font-size: 16px;
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 17px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+  min-width: 140px;
 }
 
 .banner-btn:hover {
-  transform: translateX(5px);
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+  transform: translateX(8px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4);
+  color: #0d3d8a;
 }
 
+.banner-btn:active {
+  transform: translateX(4px);
+}
+
+/* Стрелка на кнопке */
+.banner-btn::after {
+  content: '→';
+  margin-left: 8px;
+  font-weight: 900;
+  transition: transform 0.3s ease;
+}
+
+.banner-btn:hover::after {
+  transform: translateX(3px);
+}
+
+/* ===== АДАПТИВ ДЛЯ МОБИЛОК ===== */
 @media (max-width: 768px) {
   .skating-banner {
-    padding: 20px;
-    margin: 20px 0 25px 0;
+    padding: 18px 20px;
+    border-radius: 0 0 20px 20px;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.4);
   }
   
   .banner-content {
     flex-direction: column;
     text-align: center;
-    gap: 15px;
+    gap: 18px;
+  }
+  
+  .banner-icon {
+    font-size: 40px;
+    margin-bottom: 5px;
+  }
+  
+  .banner-text h3 {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  
+  .banner-text p {
+    font-size: 15px;
+    line-height: 1.3;
+  }
+  
+  .banner-btn {
+    width: 100%;
+    max-width: 220px;
+    padding: 13px 25px;
+    font-size: 16px;
+    margin-top: 5px;
+  }
+  
+  .banner-btn:hover {
+    transform: translateY(-3px);
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+  .skating-banner {
+    padding: 15px 18px;
+    border-radius: 0 0 15px 15px;
   }
   
   .banner-text h3 {
@@ -1375,8 +1460,23 @@ body {
     font-size: 14px;
   }
   
-  .banner-btn {
-    width: 100%;
-    max-width: 200px;
+  .banner-icon {
+    font-size: 35px;
   }
+}
+
+/* ===== АНИМАЦИЯ ПОЯВЛЕНИЯ ===== */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.skating-banner {
+  animation: slideDown 0.5s ease-out;
 }
