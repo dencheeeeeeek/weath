@@ -1274,20 +1274,47 @@ body {
   border: 2px solid;
   border-image: linear-gradient(135deg, #8add63, #9ac16a) 1;
 }
-/* ===== БАННЕР КАТКОВ (САМЫЙ ВЕРХ, НО С ОТСТУПАМИ) ===== */
+/* ===== БАННЕР КАТКОВ (САМЫЙ-САМЫЙ ВЕРХ С АНИМАЦИЕЙ) ===== */
 .skating-banner {
   position: relative;
   background: linear-gradient(135deg, rgba(0, 70, 140, 0.9) 0%, rgba(0, 120, 200, 0.85) 100%);
   border-radius: 20px;
   padding: 22px 30px;
-  margin: 20px auto 25px auto; /* ОТСТУПЫ СВЕРХУ И СНИЗУ */
-  max-width: 1200px; /* Чтобы не растягивался на весь экран */
+  margin: 10px auto 20px auto; /* МЕНЬШЕ отступ сверху (было 20px) */
+  max-width: 1200px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 10px 35px rgba(0, 100, 200, 0.3);
   z-index: 100;
+  
+  /* ВОЗВРАЩАЕМ АНИМАЦИЮ! */
+  animation: slideDown 0.6s ease-out, floatBanner 4s ease-in-out infinite;
+}
+
+/* Анимация появления сверху */
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Плавное плавание */
+@keyframes floatBanner {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 10px 35px rgba(0, 100, 200, 0.3);
+  }
+  50% {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 100, 200, 0.4);
+  }
 }
 
 /* Заблюренный фон */
@@ -1314,10 +1341,23 @@ body {
   z-index: 1;
 }
 
-/* Иконка */
+/* Иконка с анимацией */
 .banner-icon {
   font-size: 42px;
   filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(8px) rotate(5deg);
+  }
 }
 
 /* Текст */
@@ -1338,7 +1378,7 @@ body {
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-/* Кнопка */
+/* Кнопка с анимацией */
 .banner-btn {
   background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
   color: #1565c0;
@@ -1351,19 +1391,55 @@ body {
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(255, 255, 255, 0.25);
   min-width: 130px;
+  position: relative;
+  overflow: hidden;
 }
 
 .banner-btn:hover {
+  transform: translateX(8px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4);
+}
+
+/* Стрелка на кнопке */
+.banner-btn::after {
+  content: '→';
+  margin-left: 8px;
+  font-weight: 900;
+  transition: transform 0.3s ease;
+}
+
+.banner-btn:hover::after {
   transform: translateX(5px);
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.35);
+}
+
+/* Свечение кнопки при hover */
+.banner-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.banner-btn:hover::before {
+  left: 100%;
 }
 
 /* ===== АДАПТИВ ДЛЯ МОБИЛОК ===== */
 @media (max-width: 768px) {
   .skating-banner {
-    margin: 15px 15px 20px 15px; /* Меньшие отступы на мобилке */
+    margin: 8px 12px 15px 12px; /* ЕЩЁ МЕНЬШЕ отступы на мобилке */
     padding: 18px 20px;
     border-radius: 15px;
+    animation: slideDown 0.5s ease-out, floatBannerMobile 4s ease-in-out infinite;
+  }
+  
+  @keyframes floatBannerMobile {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
   }
   
   .banner-content {
@@ -1374,6 +1450,12 @@ body {
   
   .banner-icon {
     font-size: 36px;
+    animation: floatIconMobile 3s ease-in-out infinite;
+  }
+  
+  @keyframes floatIconMobile {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(10deg); }
   }
   
   .banner-text h3 {
@@ -1389,18 +1471,8 @@ body {
     max-width: 200px;
     padding: 10px 20px;
   }
-}
-
-/* Для планшетов */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .skating-banner {
-    margin: 18px 20px 22px 20px;
-  }
-}
-
-/* Для ПК */
-@media (min-width: 1025px) {
-  .skating-banner {
-    margin: 20px auto 25px auto; /* Авто-отступы по бокам */
+  
+  .banner-btn:hover {
+    transform: translateY(-3px) scale(1.03);
   }
 }
