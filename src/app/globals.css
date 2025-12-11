@@ -1274,13 +1274,13 @@ body {
   border: 2px solid;
   border-image: linear-gradient(135deg, #8add63, #9ac16a) 1;
 }
-/* ===== БАННЕР КАТКОВ (САМЫЙ-САМЫЙ ВЕРХ С АНИМАЦИЕЙ) ===== */
+/* ===== БАННЕР КАТКОВ (МИНИМАЛЬНЫЙ ОТСТУП + АНИМАЦИЯ ПОЯВЛЕНИЯ) ===== */
 .skating-banner {
   position: relative;
   background: linear-gradient(135deg, rgba(0, 70, 140, 0.9) 0%, rgba(0, 120, 200, 0.85) 100%);
   border-radius: 20px;
   padding: 22px 30px;
-  margin: 3 auto 20px auto; /* МЕНЬШЕ отступ сверху (было 20px) */
+  margin: 1px auto 15px auto; /* 1px сверху, 15px снизу */
   max-width: 1200px;
   overflow: hidden;
   cursor: pointer;
@@ -1289,32 +1289,47 @@ body {
   box-shadow: 0 10px 35px rgba(0, 100, 200, 0.3);
   z-index: 100;
   
-  /* ВОЗВРАЩАЕМ АНИМАЦИЮ! */
-  animation: slideDown 0.6s ease-out, floatBanner 4s ease-in-out infinite;
+  /* АНИМАЦИЯ ПОЯВЛЕНИЯ */
+  animation: bannerAppear 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
 }
 
-/* Анимация появления сверху */
-@keyframes slideDown {
-  from {
-    transform: translateY(-50px);
+/* Ключевые кадры анимации появления */
+@keyframes bannerAppear {
+  0% {
     opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+    box-shadow: 0 5px 15px rgba(0, 100, 200, 0);
   }
-  to {
-    transform: translateY(0);
+  60% {
     opacity: 1;
+    transform: translateY(5px) scale(1.02);
   }
-}
-
-/* Плавное плавание */
-@keyframes floatBanner {
-  0%, 100% {
-    transform: translateY(0);
+  80% {
+    transform: translateY(-2px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
     box-shadow: 0 10px 35px rgba(0, 100, 200, 0.3);
   }
-  50% {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 100, 200, 0.4);
+}
+
+/* Легкое плавание после появления */
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0);
   }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.skating-banner:hover {
+  animation: gentleFloat 3s ease-in-out infinite;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 15px 40px rgba(0, 100, 200, 0.4);
 }
 
 /* Заблюренный фон */
@@ -1329,6 +1344,14 @@ body {
   background-position: center;
   filter: blur(8px) brightness(0.65);
   z-index: -1;
+  opacity: 0;
+  animation: bgFadeIn 1s ease-out 0.3s forwards;
+}
+
+@keyframes bgFadeIn {
+  to {
+    opacity: 1;
+  }
 }
 
 /* Контент */
@@ -1339,30 +1362,40 @@ body {
   gap: 22px;
   color: white;
   z-index: 1;
+  opacity: 0;
+  animation: contentFadeIn 0.6s ease-out 0.4s forwards;
 }
 
-/* Иконка с анимацией */
+@keyframes contentFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Иконка с анимацией появления */
 .banner-icon {
   font-size: 42px;
   filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
-  animation: floatIcon 3s ease-in-out infinite;
+  animation: iconPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.6s forwards;
+  transform: scale(0) rotate(-180deg);
 }
 
-@keyframes floatIcon {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
+@keyframes iconPop {
+  0% {
+    transform: scale(0) rotate(-180deg);
   }
-  25% {
-    transform: translateY(-8px) rotate(-5deg);
+  70% {
+    transform: scale(1.2) rotate(20deg);
   }
-  75% {
-    transform: translateY(8px) rotate(5deg);
+  100% {
+    transform: scale(1) rotate(0deg);
   }
 }
 
-/* Текст */
+/* Текст с появлением слева */
 .banner-text {
   flex: 1;
+  overflow: hidden;
 }
 
 .banner-text h3 {
@@ -1370,15 +1403,28 @@ body {
   font-weight: 700;
   margin-bottom: 6px;
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+  animation: slideTextLeft 0.7s ease-out 0.5s forwards;
+  transform: translateX(-50px);
+  opacity: 0;
+}
+
+@keyframes slideTextLeft {
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .banner-text p {
   font-size: 16px;
   opacity: 0.9;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
+  animation: slideTextLeft 0.7s ease-out 0.6s forwards;
+  transform: translateX(-50px);
+  opacity: 0;
 }
 
-/* Кнопка с анимацией */
+/* Кнопка с анимацией появления снизу */
 .banner-btn {
   background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
   color: #1565c0;
@@ -1393,14 +1439,23 @@ body {
   min-width: 130px;
   position: relative;
   overflow: hidden;
+  animation: buttonSlideUp 0.5s ease-out 0.7s forwards;
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+@keyframes buttonSlideUp {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .banner-btn:hover {
-  transform: translateX(8px) scale(1.05);
+  transform: translateX(5px) scale(1.05);
   box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4);
 }
 
-/* Стрелка на кнопке */
 .banner-btn::after {
   content: '→';
   margin-left: 8px;
@@ -1412,7 +1467,7 @@ body {
   transform: translateX(5px);
 }
 
-/* Свечение кнопки при hover */
+/* Свечение кнопки */
 .banner-btn::before {
   content: '';
   position: absolute;
@@ -1431,15 +1486,21 @@ body {
 /* ===== АДАПТИВ ДЛЯ МОБИЛОК ===== */
 @media (max-width: 768px) {
   .skating-banner {
-    margin: 8px 12px 15px 12px; /* ЕЩЁ МЕНЬШЕ отступы на мобилке */
+    margin: 1px 12px 10px 12px; /* 1px сверху, 10px снизу */
     padding: 18px 20px;
     border-radius: 15px;
-    animation: slideDown 0.5s ease-out, floatBannerMobile 4s ease-in-out infinite;
+    animation: bannerAppearMobile 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
   }
   
-  @keyframes floatBannerMobile {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
+  @keyframes bannerAppearMobile {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
   
   .banner-content {
@@ -1450,29 +1511,56 @@ body {
   
   .banner-icon {
     font-size: 36px;
-    animation: floatIconMobile 3s ease-in-out infinite;
+    animation: iconPopMobile 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.6s forwards;
   }
   
-  @keyframes floatIconMobile {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-5px) rotate(10deg); }
+  @keyframes iconPopMobile {
+    0% { transform: scale(0) rotate(-180deg); }
+    100% { transform: scale(1) rotate(0deg); }
   }
   
   .banner-text h3 {
     font-size: 20px;
+    animation: fadeIn 0.5s ease-out 0.5s forwards;
+    transform: none;
   }
   
   .banner-text p {
     font-size: 14px;
+    animation: fadeIn 0.5s ease-out 0.6s forwards;
+    transform: none;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
   
   .banner-btn {
     width: 100%;
     max-width: 200px;
     padding: 10px 20px;
+    animation: fadeIn 0.5s ease-out 0.7s forwards;
+    transform: none;
   }
   
   .banner-btn:hover {
     transform: translateY(-3px) scale(1.03);
+  }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+  .skating-banner {
+    margin: 1px 10px 8px 10px;
+    padding: 15px 18px;
+  }
+  
+  .banner-text h3 {
+    font-size: 18px;
+  }
+  
+  .banner-text p {
+    font-size: 13px;
   }
 }
