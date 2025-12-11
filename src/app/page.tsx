@@ -852,7 +852,7 @@ const handleAuth = async (isLogin: boolean) => {
       <div className="banner-text">
         <h3>Катки Омска 2025</h3>
       </div>
-      <button className="banner-btn">На карту →</button>
+      <button className="banner-btn">На карту </button>
     </div>
   </div>
 </Link>
