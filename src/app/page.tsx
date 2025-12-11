@@ -844,8 +844,7 @@ const handleAuth = async (isLogin: boolean) => {
 
   return (
         <div className="container">
-      <div className="top-section">
-        <Link href="/skating-rinks">
+                  <Link href="/skating-rinks">
   <div className="skating-banner">
     <div className="banner-bg"></div>
     <div className="banner-content">
@@ -857,6 +856,7 @@ const handleAuth = async (isLogin: boolean) => {
     </div>
   </div>
 </Link>
+      <div className="top-section">
         <div className="logo-section">
           <div className="logo-main">WINTER</div>
           <div className="logo-sub">SALE</div>
