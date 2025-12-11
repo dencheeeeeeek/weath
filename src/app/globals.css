@@ -1280,11 +1280,11 @@ body {
   background: linear-gradient(135deg, rgba(0, 70, 140, 0.9) 0%, rgba(0, 120, 200, 0.85) 100%);
   border-radius: 20px;
   padding: 22px 30px;
-  margin: 0px auto 30px auto; /* 1px сверху, 15px снизу */
+  margin: 1px auto 15px auto; /* 1px сверху, 15px снизу */
   max-width: 1200px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   border: 2px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 10px 35px rgba(0, 100, 200, 0.3);
   z-index: 100;
@@ -1316,18 +1316,9 @@ body {
   }
 }
 
-/* Легкое плавание после появления */
-@keyframes gentleFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
-}
-
+/* Hover эффект (БЕЗ АНИМАЦИИ - только трансформация) */
 .skating-banner:hover {
-  animation: gentleFloat 3s ease-in-out infinite;
+  transform: translateY(-3px);
   border-color: rgba(255, 255, 255, 0.5);
   box-shadow: 0 15px 40px rgba(0, 100, 200, 0.4);
 }
@@ -1563,27 +1554,4 @@ body {
   .banner-text p {
     font-size: 13px;
   }
-}
-.blue-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  border: 2px solid #60a5fa;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-  backdrop-filter: blur(10px);
-}
-
-.blue-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-  border-color: #93c5fd;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
 }
