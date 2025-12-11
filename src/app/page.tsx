@@ -539,7 +539,7 @@ const CurrentWeather = ({ weather, currentDate }: { weather: WeatherData, curren
             <span>{convertPressure(weather.hourly.pressure_msl[0])} мм. рт. ст.</span>
           </div>
           <div className="detail-item">
-            <span>Влажность:</span>
+            <span>Влажность:  </span>
             <span>{fishingAdvice.humidity}% - {fishingAdvice.factors.humidity.desc}</span>
           </div>
           <div className="detail-item">
@@ -845,6 +845,18 @@ const handleAuth = async (isLogin: boolean) => {
   return (
         <div className="container">
       <div className="top-section">
+        <Link href="/skating-rinks">
+  <div className="skating-banner">
+    <div className="banner-bg"></div>
+    <div className="banner-content">
+      <div className="banner-icon">⛸️</div>
+      <div className="banner-text">
+        <h3>Катки Омска 2025</h3>
+      </div>
+      <button className="banner-btn">На карту →</button>
+    </div>
+  </div>
+</Link>
         <div className="logo-section">
           <div className="logo-main">WINTER</div>
           <div className="logo-sub">SALE</div>
